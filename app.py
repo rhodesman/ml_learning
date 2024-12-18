@@ -29,6 +29,8 @@ for news in news_data:
 #debug returned data
 print(crypto_data.head())
 print(crypto_data.dtypes)
+crypto_data.to_csv("data/raw/debug_crypto_data.csv")
+print("Debug crypto data saved for inspection.")
 
 # Step 4: Preprocess Stock Data
 print("Preprocessing stock data...")
