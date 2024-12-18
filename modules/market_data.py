@@ -1,4 +1,5 @@
 import yfinance as yf
+from datetime import datetime, timedelta, timezone
 import os
 import hmac
 import hashlib
@@ -6,7 +7,6 @@ import time
 from dotenv import load_dotenv
 import requests
 import pandas as pd
-from datetime import datetime, timedelta, timezone
 from base64 import b64encode
 
 # Load environment variables
@@ -55,9 +55,16 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
     start_time = end_time - timedelta(days=days)
 
     # API endpoint and request path
-    base_url = "https://api.coinbase.com"
-    request_path = f"/products/{product_id}/candles?start={start_time.isoformat()}&end={end_time.isoformat()}&granularity={granularity}"
+    base_url = "https://api.coinbase.com/api/v3/brokerage"
+    request_path = f"/products/{product_id}/candles"
     url = base_url + request_path
+
+    # Query parameters
+    params = {
+        "start": start_time.isoformat(),
+        "end": end_time.isoformat(),
+        "granularity": granularity
+    }
 
     # Generate authentication headers
     timestamp = str(int(time.time()))
@@ -73,13 +80,16 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
     }
 
     # Make the API request
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, params=params)
     
     if response.status_code != 200:
         raise ValueError(f"Error fetching data from Coinbase API: {response.status_code} - {response.text}")
 
     # Parse response JSON into a DataFrame
-    data = response.json()
+    data = response.json().get("candles", [])
+    if not data:
+        raise ValueError("No candlestick data found in the API response.")
+
     return pd.DataFrame(data, columns=["time", "low", "high", "open", "close", "volume"])
 
 def fetch_stock_data(ticker, start, end):
