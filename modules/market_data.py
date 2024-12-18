@@ -8,7 +8,8 @@ from dotenv import load_dotenv
 import requests
 import pandas as pd
 from base64 import b64encode
-from coinbase.rest import RESTClient
+from coinflow import CoinFlow
+#from coinbase.rest import RESTClient
 import logging
 
 logging.basicConfig(level=logging.DEBUG) 
@@ -20,12 +21,13 @@ load_dotenv()
 API_KEY = os.getenv("COINBASE_API_KEY")
 API_SECRET = os.getenv("COINBASE_API_SECRET")
 
-# Initialize the RESTClient
-client = RESTClient(api_key=API_KEY, api_secret=API_SECRET)
+# Initialize CoinFlow client
+coinflow = CoinFlow(api_key=API_KEY, api_secret=API_SECRET)
+
 
 def fetch_crypto_data(product_id="BTC-USD", days=30, granularity=86400):
     """
-    Fetch historical cryptocurrency candlestick data from Coinbase API.
+    Fetch historical cryptocurrency candlestick data using CoinFlow.
 
     Args:
         product_id (str): The product ID (e.g., "BTC-USD").
@@ -43,29 +45,25 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity=86400):
     start_time_str = start_time.strftime("%Y-%m-%dT%H:%M:%SZ")
     end_time_str = end_time.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    # Debug timestamps
-    print("Start Time (string):", start_time_str)
-    print("End Time (string):", end_time_str)
-
-    # Fetch candles using the RESTClient
-    candles = client.get_candles(
+    # Fetch candles using CoinFlow
+    candles = coinflow.get_candles(
         product_id=product_id,
         start=start_time_str,
         end=end_time_str,
-        granularity=granularity  # Ensure this is an integer
+        granularity=granularity
     )
 
     # Parse the response into a DataFrame
     data = [
         {
-            "time": candle.start,
-            "low": candle.low,
-            "high": candle.high,
-            "open": candle.open,
-            "close": candle.close,
-            "volume": candle.volume
+            "time": candle["time"],
+            "low": candle["low"],
+            "high": candle["high"],
+            "open": candle["open"],
+            "close": candle["close"],
+            "volume": candle["volume"]
         }
-        for candle in candles.candles
+        for candle in candles
     ]
 
     return pd.DataFrame(data)
