@@ -1,21 +1,46 @@
-import json
 from modules.market_data import fetch_stock_data, fetch_crypto_data
 from modules.news_data import fetch_news
 from modules.preprocessing import clean_market_data, clean_news_data
+import os
 
-# Load configurations
-with open("configs/config.json") as f:
-    config = json.load(f)
+# Create necessary directories if they don't exist
+os.makedirs("data/raw", exist_ok=True)
+os.makedirs("data/processed", exist_ok=True)
 
-# Fetch Data
-stock_data = fetch_stock_data("AAPL", "2020-01-01", "2023-12-31")
+# Step 1: Collect Stock Data
+print("Fetching stock data...")
+stock_data = fetch_stock_data("AAPL", start="2020-01-01", end="2023-12-31")
+stock_data.to_csv("data/raw/aapl_stock_data.csv")
+print("Stock data saved to data/raw/aapl_stock_data.csv")
+
+# Step 2: Collect Crypto Data
+print("Fetching crypto data...")
 crypto_data = fetch_crypto_data("BTCUSDT", "1d", 100)
-news_data = fetch_news(config["news_query"])
+crypto_data.to_csv("data/raw/btcusdt_crypto_data.csv")
+print("Crypto data saved to data/raw/btcusdt_crypto_data.csv")
 
-# Preprocess Data
+# Step 3: Collect News Data
+print("Fetching news data...")
+news_data = fetch_news("politics")
+print("News data fetched. Titles:")
+for news in news_data:
+    print(news["title"])
+
+# Step 4: Preprocess Stock Data
+print("Preprocessing stock data...")
 cleaned_stocks = clean_market_data(stock_data)
-cleaned_news = clean_news_data(news_data)
+cleaned_stocks.to_csv("data/processed/cleaned_stock_data.csv")
+print("Cleaned stock data saved to data/processed/cleaned_stock_data.csv")
 
-# Output Results
-print(cleaned_stocks.head())
-print(cleaned_news)
+# Step 5: Preprocess Crypto Data
+print("Preprocessing crypto data...")
+cleaned_crypto = clean_market_data(crypto_data)
+cleaned_crypto.to_csv("data/processed/cleaned_crypto_data.csv")
+print("Cleaned crypto data saved to data/processed/cleaned_crypto_data.csv")
+
+# Step 6: Preprocess News Data
+print("Preprocessing news data...")
+cleaned_news = clean_news_data(news_data)
+print("Cleaned news titles:")
+for news in cleaned_news:
+    print(news["title"])
