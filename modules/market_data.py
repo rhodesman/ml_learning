@@ -9,6 +9,9 @@ import requests
 import pandas as pd
 from base64 import b64encode
 from coinbase.rest import RESTClient
+import logging
+
+logging.basicConfig(level=logging.DEBUG) 
 
 # Load environment variables
 load_dotenv()
