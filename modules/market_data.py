@@ -12,7 +12,7 @@ API_KEY = os.getenv("COINBASE_API_KEY")
 API_SECRET = os.getenv("COINBASE_API_SECRET")
 
 
-def fetch_crypto_data_manual(product_id="BTC-USD", days=30, granularity=86400):
+def fetch_crypto_data(product_id="BTC-USD", days=30, granularity=86400):
     """
     Fetch historical cryptocurrency candlestick data from Coinbase API.
 
