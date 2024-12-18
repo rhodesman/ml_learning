@@ -12,9 +12,9 @@ from base64 import b64encode
 # Load environment variables
 load_dotenv()
 
-# Get API credentials from the .env file
-api_key = os.getenv("COINBASE_API_KEY")
-api_secret = os.getenv("COINBASE_API_SECRET")
+# API credentials from .env
+API_KEY = os.getenv("COINBASE_API_KEY")
+API_SECRET = os.getenv("COINBASE_API_SECRET")
 
 def generate_signature(timestamp, method, request_path, body, secret):
     """
