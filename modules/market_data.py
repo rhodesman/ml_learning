@@ -20,7 +20,7 @@ API_SECRET = os.getenv("COINBASE_API_SECRET")
 # Initialize the RESTClient
 client = RESTClient(api_key=API_KEY, api_secret=API_SECRET)
 
-def fetch_crypto_data(product_id="BTC-USD", days=30, granularity=3600):
+def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="3600"):
     """
     Fetch historical cryptocurrency candlestick data from Coinbase API.
 
