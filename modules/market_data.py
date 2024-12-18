@@ -36,7 +36,7 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
 
     # Print time for debugging
     print(f"Start Time: {start_time.isoformat()}")
-print(f"End Time: {end_time.isoformat()}")
+    print(f"End Time: {end_time.isoformat()}")
 
     # Fetch candlestick data
     candles = client.get_candles(
