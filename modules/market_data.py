@@ -20,20 +20,20 @@ API_SECRET = os.getenv("COINBASE_API_SECRET")
 # Initialize the RESTClient
 client = RESTClient(api_key=API_KEY, api_secret=API_SECRET)
 
-def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="3600"):
+def fetch_crypto_data(product_id="BTC-USD", days=30, granularity=86400):
     """
     Fetch historical cryptocurrency candlestick data from Coinbase API.
 
     Args:
         product_id (str): The product ID (e.g., "BTC-USD").
         days (int): Number of days to fetch historical data for.
-        granularity (str): Granularity of candlesticks (e.g., "ONE_DAY").
+        granularity (int): Granularity in seconds (e.g., 86400 for 1 day).
 
     Returns:
         pd.DataFrame: A DataFrame with time, low, high, open, close, and volume.
     """
     # Define the time range with timezone information
-    end_time = datetime.now(timezone.utc).replace(microsecond=0)  # Remove subsecond precision
+    end_time = datetime.now(timezone.utc).replace(microsecond=0)
     start_time = end_time - timedelta(days=days)
 
     # Format timestamps as ISO 8601 strings with "Z" suffix
@@ -49,7 +49,7 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="3600"):
         product_id=product_id,
         start=start_time_str,
         end=end_time_str,
-        granularity=granularity
+        granularity=granularity  # Ensure this is an integer
     )
 
     # Parse the response into a DataFrame
