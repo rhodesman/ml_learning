@@ -1,0 +1,6 @@
+{
+    "stock_symbols": ["AAPL", "GOOG"],
+    "crypto_symbols": ["BTCUSDT", "ETHUSDT"],
+    "news_query": "politics",
+    "data_intervals": {"stocks": "1d", "crypto": "1h"}
+}
