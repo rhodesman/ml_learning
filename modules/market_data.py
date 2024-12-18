@@ -1,10 +1,13 @@
 import yfinance as yf
+import os
+import hmac
+import hashlib
+import time
+from dotenv import load_dotenv
 import requests
 import pandas as pd
-import os
-from dotenv import load_dotenv
-from coinbase.rest import RESTClient
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from base64 import b64encode
 
 # Load environment variables
 load_dotenv()
@@ -13,10 +16,27 @@ load_dotenv()
 api_key = os.getenv("COINBASE_API_KEY")
 api_secret = os.getenv("COINBASE_API_SECRET")
 
-# Initialize the Coinbase API client
-client = RESTClient(api_key=api_key, api_secret=api_secret)
+def generate_signature(timestamp, method, request_path, body, secret):
+    """
+    Generate the CB-ACCESS-SIGN header for Coinbase API authentication.
 
-from datetime import datetime, timedelta, timezone
+    Args:
+        timestamp (str): The current UNIX timestamp as a string.
+        method (str): HTTP method (GET, POST, etc.).
+        request_path (str): The API endpoint path.
+        body (str): The request body (empty string for GET requests).
+        secret (str): The API secret.
+
+    Returns:
+        str: The generated signature.
+    """
+    message = f"{timestamp}{method.upper()}{request_path}{body}"
+    signature = hmac.new(
+        b64encode(secret.encode()),
+        message.encode(),
+        hashlib.sha256
+    ).digest()
+    return b64encode(signature).decode()
 
 def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
     """
@@ -34,36 +54,33 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
     end_time = datetime.now(timezone.utc).replace(microsecond=0)
     start_time = end_time - timedelta(days=days)
 
-    # Convert timestamps to strings
-    start_time_str = start_time.isoformat()
-    end_time_str = end_time.isoformat()
+    # API endpoint and request path
+    base_url = "https://api.coinbase.com"
+    request_path = f"/products/{product_id}/candles?start={start_time.isoformat()}&end={end_time.isoformat()}&granularity={granularity}"
+    url = base_url + request_path
 
-    # Debugging timestamps
-    print(f"Start Time (string): {start_time_str}")
-    print(f"End Time (string): {end_time_str}")
+    # Generate authentication headers
+    timestamp = str(int(time.time()))
+    method = "GET"
+    body = ""  # Empty body for GET requests
+    signature = generate_signature(timestamp, method, request_path, body, API_SECRET)
 
-    # Fetch candlestick data
-    candles = client.get_candles(
-        product_id=product_id,
-        start=start_time_str,
-        end=end_time_str,
-        granularity=granularity
-    )
+    headers = {
+        "CB-ACCESS-KEY": API_KEY,
+        "CB-ACCESS-SIGN": signature,
+        "CB-ACCESS-TIMESTAMP": timestamp,
+        "CB-VERSION": "2021-03-23"  # API version date
+    }
 
-    # Convert the data to a DataFrame
-    data = [
-        {
-            "time": candle.start,
-            "open": candle.open,
-            "high": candle.high,
-            "low": candle.low,
-            "close": candle.close,
-            "volume": candle.volume
-        }
-        for candle in candles.candles
-    ]
+    # Make the API request
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code != 200:
+        raise ValueError(f"Error fetching data from Coinbase API: {response.status_code} - {response.text}")
 
-    return pd.DataFrame(data)
+    # Parse response JSON into a DataFrame
+    data = response.json()
+    return pd.DataFrame(data, columns=["time", "low", "high", "open", "close", "volume"])
 
 def fetch_stock_data(ticker, start, end):
     data = yf.download(ticker, start=start, end=end)
