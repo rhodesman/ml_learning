@@ -26,6 +26,10 @@ print("News data fetched. Titles:")
 for news in news_data:
     print(news["title"])
 
+#debug returned data
+print(crypto_data.head())
+print(crypto_data.dtypes)
+
 # Step 4: Preprocess Stock Data
 print("Preprocessing stock data...")
 cleaned_stocks = clean_market_data(stock_data)
