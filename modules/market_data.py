@@ -16,6 +16,8 @@ api_secret = os.getenv("COINBASE_API_SECRET")
 # Initialize the Coinbase API client
 client = RESTClient(api_key=api_key, api_secret=api_secret)
 
+from datetime import datetime, timedelta, timezone
+
 def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
     """
     Fetch historical cryptocurrency data from Coinbase API.
@@ -28,8 +30,8 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
     Returns:
         pd.DataFrame: A DataFrame with time, open, high, low, close, and volume.
     """
-    # Define the time range
-    end_time = datetime.now()
+    # Define the time range with timezone information
+    end_time = datetime.now(timezone.utc)
     start_time = end_time - timedelta(days=days)
 
     # Fetch candlestick data
