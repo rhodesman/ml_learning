@@ -7,3 +7,5 @@ beautifulsoup4
 newspaper3k
 tensorflow
 torch
+coinbase-advanced-py
+python-dotenv

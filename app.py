@@ -14,10 +14,11 @@ stock_data.to_csv("data/raw/aapl_stock_data.csv")
 print("Stock data saved to data/raw/aapl_stock_data.csv")
 
 # Step 2: Collect Crypto Data
+# Fetch crypto data using Coinbase API
 print("Fetching crypto data...")
-crypto_data = fetch_crypto_data("BTCUSDT", "1h", 10)
-crypto_data.to_csv("data/raw/btcusdt_crypto_data.csv")
-print("Crypto data saved to data/raw/btcusdt_crypto_data.csv")
+crypto_data = fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY")
+crypto_data.to_csv("data/raw/debug_crypto_data.csv", index=False)
+print("Crypto data fetched and saved to data/raw/debug_crypto_data.csv.")
 
 # Step 3: Collect News Data
 print("Fetching news data...")
