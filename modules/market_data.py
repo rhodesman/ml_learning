@@ -88,6 +88,10 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
 
     if response.status_code != 200:
         raise ValueError(f"Error fetching data from Coinbase API: {response.status_code} - {response.text}")
+        print("Request URL:", url)
+        print("Headers:", headers)
+        print("Params:", params)
+        print("Response:", response.text)
 
     # Parse response JSON into a DataFrame
     data = response.json().get("candles", [])
