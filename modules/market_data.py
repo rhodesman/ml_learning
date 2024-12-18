@@ -70,6 +70,43 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity=86400):
 
     return pd.DataFrame(data)
 
+def fetch_crypto_data_manual(product_id="BTC-USD", days=30, granularity=86400):
+    # Define the time range with timezone information
+    end_time = datetime.now(timezone.utc).replace(microsecond=0)
+    start_time = end_time - timedelta(days=days)
+
+    # Format timestamps as ISO 8601 strings with "Z" suffix
+    start_time_str = start_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+    end_time_str = end_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # Manually construct the URL query string
+    url = (
+        f"https://api.coinbase.com/api/v3/brokerage/products/{product_id}/candles"
+        f"?start={start_time_str}&end={end_time_str}&granularity={granularity}"
+    )
+
+    # Construct headers
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    # Print the constructed URL for debugging
+    print("Constructed URL:", url)
+
+    # Make the API request
+    response = requests.get(url, headers=headers)
+
+    # Print the response for debugging
+    print("Response Code:", response.status_code)
+    print("Response Body:", response.text)
+
+    # Raise an error for non-200 responses
+    response.raise_for_status()
+
+    # Parse response JSON
+    return response.json()
+
 def fetch_stock_data(ticker, start, end):
     data = yf.download(ticker, start=start, end=end)
     return data
