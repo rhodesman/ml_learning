@@ -34,15 +34,19 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
     end_time = datetime.now(timezone.utc).replace(microsecond=0)
     start_time = end_time - timedelta(days=days)
 
+    # Convert timestamps to strings
+    start_time_str = start_time.isoformat()
+    end_time_str = end_time.isoformat()
+
     # Debugging timestamps
-    print(f"Start Time: {start_time.isoformat()}")
-    print(f"End Time: {end_time.isoformat()}")
+    print(f"Start Time (string): {start_time_str}")
+    print(f"End Time (string): {end_time_str}")
 
     # Fetch candlestick data
     candles = client.get_candles(
         product_id=product_id,
-        start=start_time.isoformat(),
-        end=end_time.isoformat(),
+        start=start_time_str,
+        end=end_time_str,
         granularity=granularity
     )
 
