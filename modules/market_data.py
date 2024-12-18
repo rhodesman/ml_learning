@@ -17,88 +17,52 @@ load_dotenv()
 API_KEY = os.getenv("COINBASE_API_KEY")
 API_SECRET = os.getenv("COINBASE_API_SECRET")
 
-
-
-def generate_signature(timestamp, method, request_path, body, secret):
-    """
-    Generate the CB-ACCESS-SIGN header for Coinbase API authentication.
-
-    Args:
-        timestamp (str): The current UNIX timestamp as a string.
-        method (str): HTTP method (GET, POST, etc.).
-        request_path (str): The API endpoint path.
-        body (str): The request body (empty string for GET requests).
-        secret (str): The API secret.
-
-    Returns:
-        str: The generated signature.
-    """
-    message = f"{timestamp}{method.upper()}{request_path}{body}"
-    signature = hmac.new(
-        b64encode(secret.encode()),
-        message.encode(),
-        hashlib.sha256
-    ).digest()
-    return b64encode(signature).decode()
+# Initialize the RESTClient
+client = RESTClient(api_key=API_KEY, api_secret=API_SECRET)
 
 def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
     """
-    Fetch historical cryptocurrency data from Coinbase API.
+    Fetch historical cryptocurrency candlestick data from Coinbase API.
 
     Args:
         product_id (str): The product ID (e.g., "BTC-USD").
         days (int): Number of days to fetch historical data for.
-        granularity (str): Granularity of candlesticks (e.g., "ONE_DAY", "ONE_MINUTE").
+        granularity (str): Granularity of candlesticks (e.g., "ONE_DAY").
 
     Returns:
-        pd.DataFrame: A DataFrame with time, open, high, low, close, and volume.
+        pd.DataFrame: A DataFrame with time, low, high, open, close, and volume.
     """
     # Define the time range with timezone information
     end_time = datetime.now(timezone.utc).replace(microsecond=0)
     start_time = end_time - timedelta(days=days)
 
-    # Convert timestamps to strings
-    start_time_str = start_time.isoformat()
-    end_time_str = end_time.isoformat()
+    # Fetch candles using the RESTClient
+    candles = client.get_candles(
+        product_id=product_id,
+        start=start_time.isoformat(),
+        end=end_time.isoformat(),
+        granularity=granularity
+    )
 
-    # API endpoint and request path
-    base_url = "https://api.coinbase.com/api/v3/brokerage"
-    request_path = f"/products/{product_id}/candles"
-    url = f"{base_url}{request_path}?start={start_time_str}&end={end_time_str}&limit={days}&granularity={granularity}"
+    # Parse the response into a DataFrame
+    data = [
+        {
+            "time": candle.start,
+            "low": candle.low,
+            "high": candle.high,
+            "open": candle.open,
+            "close": candle.close,
+            "volume": candle.volume
+        }
+        for candle in candles.candles
+    ]
 
-    # Generate authentication headers
-    timestamp = str(int(time.time()))
-    method = "GET"
-    body = ""  # Empty body for GET requests
-    signature = generate_signature(timestamp, method, request_path, body, API_SECRET)
+    return pd.DataFrame(data)
 
-    headers = {
-        "CB-ACCESS-KEY": API_KEY,
-        "CB-ACCESS-SIGN": signature,
-        "CB-ACCESS-TIMESTAMP": timestamp,
-        "CB-VERSION": "2021-03-23",  # API version date
-        "Content-Type": "application/json"  # Ensures proper request format
-    }
-
-    # Debugging the request
-    print("Request URL:", url)
-    print("Headers:", headers)
-
-    # Make the API request
-    #response = requests.get(url, headers=headers)
-    response = RESTClient(api_key=API_KEY, api_secret=API_SECRET)
-
-    print("Response:", response.get_accounts())
-
-    if response.status_code != 200:
-        raise ValueError(f"Error fetching data from Coinbase API: {response.status_code} - {response.text}")
-
-    # Parse response JSON into a DataFrame
-    data = response.json().get("candles", [])
-    if not data:
-        raise ValueError("No candlestick data found in the API response.")
-
-    return pd.DataFrame(data, columns=["time", "low", "high", "open", "close", "volume"])
+# Example usage
+if __name__ == "__main__":
+    df = fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY")
+    print(df.head())
 
 def fetch_stock_data(ticker, start, end):
     data = yf.download(ticker, start=start, end=end)
