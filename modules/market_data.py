@@ -60,6 +60,7 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
     """
     # Generate the JWT
     jwt_token = generate_jwt(API_KEY, API_SECRET)
+    print("Generated JWT:", jwt_token)
 
     # Define the time range with timezone information
     end_time = datetime.now(timezone.utc).replace(microsecond=0)
