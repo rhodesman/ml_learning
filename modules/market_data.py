@@ -38,7 +38,7 @@ def generate_signature(timestamp, method, request_path, body, secret):
     ).digest()
     return b64encode(signature).decode()
 
-def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
+def fetch_crypto_data(product_id="BTC-US", days=30, granularity="ONE_DAY"):
     """
     Fetch historical cryptocurrency data from Coinbase API.
 
@@ -51,7 +51,7 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
         pd.DataFrame: A DataFrame with time, open, high, low, close, and volume.
     """
     # Ensure product_id is correctly formatted
-    if not product_id.endswith("USD"):
+    if not product_id.endswith("US"):
         raise ValueError(f"Invalid product_id format: {product_id}. Expected format is BASE-QUOTE (e.g., BTC-USD).")
 
     # Define the time range with timezone information
