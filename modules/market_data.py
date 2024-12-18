@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 import requests
 import pandas as pd
 from base64 import b64encode
-from coinflow import CoinFlow
+import coinflow
 #from coinbase.rest import RESTClient
 import logging
 
@@ -22,7 +22,7 @@ API_KEY = os.getenv("COINBASE_API_KEY")
 API_SECRET = os.getenv("COINBASE_API_SECRET")
 
 # Initialize CoinFlow client
-coinflow = CoinFlow(api_key=API_KEY, api_secret=API_SECRET)
+coinflow = coinflow.Client(api_key=API_KEY, api_secret=API_SECRET)
 
 
 def fetch_crypto_data(product_id="BTC-USD", days=30, granularity=86400):
