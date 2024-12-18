@@ -50,25 +50,18 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
     Returns:
         pd.DataFrame: A DataFrame with time, open, high, low, close, and volume.
     """
-    # Ensure product_id is correctly formatted
-    if not product_id.endswith("USD"):
-        raise ValueError(f"Invalid product_id format: {product_id}. Expected format is BASE-QUOTE (e.g., BTC-USD).")
-
     # Define the time range with timezone information
     end_time = datetime.now(timezone.utc).replace(microsecond=0)
     start_time = end_time - timedelta(days=days)
 
+    # Convert timestamps to strings
+    start_time_str = start_time.isoformat()
+    end_time_str = end_time.isoformat()
+
     # API endpoint and request path
     base_url = "https://api.coinbase.com/api/v3/brokerage"
     request_path = f"/products/{product_id}/candles"
-    url = base_url + request_path
-
-    # Query parameters
-    params = {
-        "start": start_time.isoformat(),
-        "end": end_time.isoformat(),
-        "granularity": granularity
-    }
+    url = f"{base_url}{request_path}?start={start_time_str}&end={end_time_str}&limit={days}&granularity={granularity}"
 
     # Generate authentication headers
     timestamp = str(int(time.time()))
@@ -80,20 +73,19 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
         "CB-ACCESS-KEY": API_KEY,
         "CB-ACCESS-SIGN": signature,
         "CB-ACCESS-TIMESTAMP": timestamp,
-        "CB-VERSION": "2021-03-23"  # API version date
+        "CB-VERSION": "2021-03-23",  # API version date
+        "Content-Type": "application/json"  # Ensures proper request format
     }
 
-    # Make the API request
-    response = requests.get(url, headers=headers, params=params)
-
+    # Debugging the request
     print("Request URL:", url)
     print("Headers:", headers)
-    print("Params:", params)
-    print("Response:", response.text)
+
+    # Make the API request
+    response = requests.get(url, headers=headers)
 
     if response.status_code != 200:
         raise ValueError(f"Error fetching data from Coinbase API: {response.status_code} - {response.text}")
-        
 
     # Parse response JSON into a DataFrame
     data = response.json().get("candles", [])
