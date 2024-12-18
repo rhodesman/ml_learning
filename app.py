@@ -15,7 +15,7 @@ print("Stock data saved to data/raw/aapl_stock_data.csv")
 
 # Step 2: Collect Crypto Data
 print("Fetching crypto data...")
-crypto_data = fetch_crypto_data("BTCUSDT", "1d", 100)
+crypto_data = fetch_crypto_data("BTCUSDT", "1h", 10)
 crypto_data.to_csv("data/raw/btcusdt_crypto_data.csv")
 print("Crypto data saved to data/raw/btcusdt_crypto_data.csv")
 
