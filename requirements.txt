@@ -9,3 +9,4 @@ tensorflow
 torch
 coinbase-advanced-py
 python-dotenv
+pyjwt

@@ -4,6 +4,7 @@ import os
 import hmac
 import hashlib
 import time
+import jwt
 from dotenv import load_dotenv
 import requests
 import pandas as pd
@@ -16,27 +17,29 @@ load_dotenv()
 API_KEY = os.getenv("COINBASE_API_KEY")
 API_SECRET = os.getenv("COINBASE_API_SECRET")
 
-def generate_signature(timestamp, method, request_path, body, secret):
+def generate_jwt(api_key, api_secret):
     """
-    Generate the CB-ACCESS-SIGN header for Coinbase API authentication.
+    Generate a JWT for Coinbase API authentication.
 
     Args:
-        timestamp (str): The current UNIX timestamp as a string.
-        method (str): HTTP method (GET, POST, etc.).
-        request_path (str): The API endpoint path.
-        body (str): The request body (empty string for GET requests).
-        secret (str): The API secret.
+        api_key (str): The API key.
+        api_secret (str): The API secret.
 
     Returns:
-        str: The generated signature.
+        str: The generated JWT.
     """
-    message = f"{timestamp}{method.upper()}{request_path}{body}"
-    signature = hmac.new(
-        b64encode(secret.encode()),
-        message.encode(),
-        hashlib.sha256
-    ).digest()
-    return b64encode(signature).decode()
+    # Current UNIX timestamp
+    now = int(time.time())
+
+    # JWT payload
+    payload = {
+        "iat": now,  # Issued at time
+        "exp": now + 300,  # Expiration time (5 minutes from now)
+    }
+
+    # Generate the JWT
+    token = jwt.encode(payload, api_secret, algorithm="HS256", headers={"kid": api_key})
+    return token
 
 def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
     """
@@ -50,34 +53,25 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
     Returns:
         pd.DataFrame: A DataFrame with time, open, high, low, close, and volume.
     """
+    # Generate the JWT
+    jwt_token = generate_jwt(API_KEY, API_SECRET)
+
     # Define the time range with timezone information
     end_time = datetime.now(timezone.utc).replace(microsecond=0)
     start_time = end_time - timedelta(days=days)
 
-    # Convert timestamps to strings
-    start_time_str = start_time.isoformat()
-    end_time_str = end_time.isoformat()
-
     # API endpoint and request path
     base_url = "https://api.coinbase.com/api/v3/brokerage"
     request_path = f"/products/{product_id}/candles"
-    url = f"{base_url}{request_path}?start={start_time_str}&end={end_time_str}&limit={days}&granularity={granularity}"
+    url = f"{base_url}{request_path}?start={start_time.isoformat()}&end={end_time.isoformat()}&limit={days}&granularity={granularity}"
 
-    # Generate authentication headers
-    timestamp = str(int(time.time()))
-    method = "GET"
-    body = ""  # Empty body for GET requests
-    signature = generate_signature(timestamp, method, request_path, body, API_SECRET)
-
+    # Headers with the JWT
     headers = {
-        "CB-ACCESS-KEY": API_KEY,
-        "CB-ACCESS-SIGN": signature,
-        "CB-ACCESS-TIMESTAMP": timestamp,
-        "CB-VERSION": "2021-03-23",  # API version date
-        "Content-Type": "application/json"  # Ensures proper request format
+        "Authorization": f"Bearer {jwt_token}",
+        "Content-Type": "application/json"
     }
 
-    # Debugging the request
+    # Debugging request
     print("Request URL:", url)
     print("Headers:", headers)
 
