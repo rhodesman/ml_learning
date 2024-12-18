@@ -36,9 +36,13 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
     end_time = datetime.now(timezone.utc).replace(microsecond=0)  # Remove subsecond precision
     start_time = end_time - timedelta(days=days)
 
-    # Format timestamps for the API
-    start_time_iso = start_time.isoformat(timespec="seconds")
-    end_time_iso = end_time.isoformat(timespec="seconds")
+    # Format timestamps with a "Z" suffix
+    start_time_iso = start_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+    end_time_iso = end_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # Debug timestamps
+    print("Start Time (Z format):", start_time_iso)
+    print("End Time (Z format):", end_time_iso)
 
     # Fetch candles using the RESTClient
     candles = client.get_candles(
