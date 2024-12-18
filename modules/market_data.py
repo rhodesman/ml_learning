@@ -88,6 +88,8 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
     #response = requests.get(url, headers=headers)
     response = RESTClient(api_key=API_KEY, api_secret=API_SECRET)
 
+    print("Response:", response)
+
     if response.status_code != 200:
         raise ValueError(f"Error fetching data from Coinbase API: {response.status_code} - {response.text}")
 
