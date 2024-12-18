@@ -1,0 +1,9 @@
+pandas
+numpy
+scikit-learn
+yfinance
+requests
+beautifulsoup4
+newspaper3k
+tensorflow
+torch
