@@ -8,7 +8,9 @@ import jwt
 from dotenv import load_dotenv
 import requests
 import pandas as pd
-from base64 import b64encode
+# from base64 import b64encode
+import base64
+from jwt import encode as jwt_encode
 
 # Load environment variables
 load_dotenv()
@@ -28,6 +30,9 @@ def generate_jwt(api_key, api_secret):
     Returns:
         str: The generated JWT.
     """
+    # Decode the secret key from base64
+    decoded_secret = base64.b64decode(api_secret)
+
     # Current UNIX timestamp
     now = int(time.time())
 
@@ -38,7 +43,7 @@ def generate_jwt(api_key, api_secret):
     }
 
     # Generate the JWT
-    token = jwt.encode(payload, api_secret, algorithm="HS256", headers={"kid": api_key})
+    token = jwt_encode(payload, decoded_secret, algorithm="HS256", headers={"kid": api_key})
     return token
 
 def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
