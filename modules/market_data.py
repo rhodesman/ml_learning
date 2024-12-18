@@ -33,14 +33,18 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
         pd.DataFrame: A DataFrame with time, low, high, open, close, and volume.
     """
     # Define the time range with timezone information
-    end_time = datetime.now(timezone.utc).replace(microsecond=0)
+    end_time = datetime.now(timezone.utc).replace(microsecond=0)  # Remove subsecond precision
     start_time = end_time - timedelta(days=days)
+
+    # Format timestamps for the API
+    start_time_iso = start_time.isoformat(timespec="seconds")
+    end_time_iso = end_time.isoformat(timespec="seconds")
 
     # Fetch candles using the RESTClient
     candles = client.get_candles(
         product_id=product_id,
-        start=start_time.isoformat(),
-        end=end_time.isoformat(),
+        start=start_time_iso,
+        end=end_time_iso,
         granularity=granularity
     )
 
@@ -58,11 +62,6 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
     ]
 
     return pd.DataFrame(data)
-
-# Example usage
-if __name__ == "__main__":
-    df = fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY")
-    print(df.head())
 
 def fetch_stock_data(ticker, start, end):
     data = yf.download(ticker, start=start, end=end)
