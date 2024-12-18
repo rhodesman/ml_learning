@@ -50,6 +50,10 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
     Returns:
         pd.DataFrame: A DataFrame with time, open, high, low, close, and volume.
     """
+    # Ensure product_id is correctly formatted
+    if not product_id.endswith("USD"):
+        raise ValueError(f"Invalid product_id format: {product_id}. Expected format is BASE-QUOTE (e.g., BTC-USD).")
+
     # Define the time range with timezone information
     end_time = datetime.now(timezone.utc).replace(microsecond=0)
     start_time = end_time - timedelta(days=days)
@@ -81,7 +85,7 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
 
     # Make the API request
     response = requests.get(url, headers=headers, params=params)
-    
+
     if response.status_code != 200:
         raise ValueError(f"Error fetching data from Coinbase API: {response.status_code} - {response.text}")
 
