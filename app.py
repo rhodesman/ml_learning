@@ -1,4 +1,4 @@
-from modules.market_data import fetch_stock_data, fetch_crypto_data_manual
+from modules.market_data import fetch_stock_data, fetch_crypto_data
 from modules.news_data import fetch_news
 from modules.preprocessing import clean_market_data, clean_news_data
 import os

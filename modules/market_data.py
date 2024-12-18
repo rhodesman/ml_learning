@@ -1,8 +1,17 @@
-import requests
+import yfinance as yf
 from datetime import datetime, timedelta, timezone
-from dotenv import load_dotenv
 import os
+import hmac
+import hashlib
+import time
+from dotenv import load_dotenv
+import requests
 import pandas as pd
+from base64 import b64encode
+from coinbase.rest import RESTClient
+import logging
+
+logging.basicConfig(level=logging.DEBUG) 
 
 # Load environment variables
 load_dotenv()
@@ -11,8 +20,10 @@ load_dotenv()
 API_KEY = os.getenv("COINBASE_API_KEY")
 API_SECRET = os.getenv("COINBASE_API_SECRET")
 
+# Initialize the RESTClient
+client = RESTClient(api_key=API_KEY, api_secret=API_SECRET)
 
-def fetch_crypto_data_manual(product_id="BTC-USD", days=30, granularity=86400):
+def fetch_crypto_data(product_id="BTC-USD", days=30, granularity=86400):
     """
     Fetch historical cryptocurrency candlestick data from Coinbase API.
 
@@ -32,69 +43,33 @@ def fetch_crypto_data_manual(product_id="BTC-USD", days=30, granularity=86400):
     start_time_str = start_time.strftime("%Y-%m-%dT%H:%M:%SZ")
     end_time_str = end_time.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    # Manually construct the URL query string
-    url = (
-        f"https://api.coinbase.com/api/v3/brokerage/products/{product_id}/candles"
-        f"?start={start_time_str}&end={end_time_str}&granularity={granularity}"
+    # Debug timestamps
+    print("Start Time (string):", start_time_str)
+    print("End Time (string):", end_time_str)
+
+    # Fetch candles using the RESTClient
+    candles = client.get_candles(
+        product_id=product_id,
+        start=start_time_str,
+        end=end_time_str,
+        granularity=granularity  # Ensure this is an integer
     )
 
-    # Construct headers
-    headers = {
-        "Authorization": f"Bearer {API_KEY}",
-        "Content-Type": "application/json"
-    }
+    # Parse the response into a DataFrame
+    data = [
+        {
+            "time": candle.start,
+            "low": candle.low,
+            "high": candle.high,
+            "open": candle.open,
+            "close": candle.close,
+            "volume": candle.volume
+        }
+        for candle in candles.candles
+    ]
 
-    # Debugging: Print the constructed URL and headers
-    print("Constructed URL:", url)
-    print("Headers:", headers)
+    return pd.DataFrame(data)
 
-    # Make the API request
-    response = requests.get(url, headers=headers)
-
-    # Print the response for debugging
-    print("Response Code:", response.status_code)
-    print("Response Body:", response.text)
-
-    # Raise an error for non-200 responses
-    response.raise_for_status()
-
-    # Parse response JSON into a DataFrame
-    data = response.json().get("candles", [])
-    if not data:
-        raise ValueError("No candlestick data found in the API response.")
-
-    # Format the data into a DataFrame
-    df = pd.DataFrame(data, columns=["time", "low", "high", "open", "close", "volume"])
-    return df
-
-
-def fetch_stock_data(symbol="AAPL", days=30):
-    """
-    Placeholder function for fetching stock data.
-
-    Args:
-        symbol (str): Stock ticker symbol (e.g., "AAPL").
-        days (int): Number of days to fetch historical data for.
-
-    Returns:
-        pd.DataFrame: A DataFrame with stock data.
-    """
-    print(f"Fetching stock data for {symbol} (last {days} days)...")
-    # You can add logic to fetch stock data using yfinance or similar libraries
-    return pd.DataFrame()
-
-
-def fetch_news_data(query="cryptocurrency", days=30):
-    """
-    Placeholder function for fetching news data.
-
-    Args:
-        query (str): Search query for news articles.
-        days (int): Number of days to fetch historical data for.
-
-    Returns:
-        pd.DataFrame: A DataFrame with news data.
-    """
-    print(f"Fetching news data for query: {query} (last {days} days)...")
-    # You can add logic to fetch news data from a news API
-    return pd.DataFrame()
+def fetch_stock_data(ticker, start, end):
+    data = yf.download(ticker, start=start, end=end)
+    return data
