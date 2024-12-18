@@ -83,7 +83,16 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
     # Make the API request
     response = requests.get(url, headers=headers)
 
+    # Print the full response payload for debugging
+    if response.status_code == 401:
+        print("401 Unauthorized Error")
+        print("Response Text:", response.text)
+        print("Response Headers:", response.headers)
+        raise ValueError(f"Error fetching data from Coinbase API: {response.status_code}")
+
+    # Raise other errors if the response is not 200
     if response.status_code != 200:
+        print("Error Response:", response.text)
         raise ValueError(f"Error fetching data from Coinbase API: {response.status_code} - {response.text}")
 
     # Parse response JSON into a DataFrame
