@@ -31,10 +31,10 @@ def fetch_crypto_data(product_id="BTC-USD", days=30, granularity="ONE_DAY"):
         pd.DataFrame: A DataFrame with time, open, high, low, close, and volume.
     """
     # Define the time range with timezone information
-    end_time = datetime.now(timezone.utc)
+    end_time = datetime.now(timezone.utc).replace(microsecond=0)
     start_time = end_time - timedelta(days=days)
 
-    # Print time for debugging
+    # Debugging timestamps
     print(f"Start Time: {start_time.isoformat()}")
     print(f"End Time: {end_time.isoformat()}")
 
