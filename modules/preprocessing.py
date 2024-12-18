@@ -2,18 +2,23 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
 def clean_market_data(df):
-    # Drop any non-numeric columns or extra rows
-    df = df.iloc[1:]  # Skip the extra header row
-    df = df.apply(pd.to_numeric, errors="coerce")  # Convert columns to numeric
+    # Check if the DataFrame is empty
+    if df.empty:
+        raise ValueError("The input DataFrame is empty. Check your data source.")
 
-    # Normalize relevant columns
+    # Ensure only numerical columns are selected for scaling
+    required_columns = ["Open", "High", "Low", "Close"]
+    for column in required_columns:
+        if column not in df.columns:
+            raise ValueError(f"Missing required column: {column}")
+
+    # Drop any non-numeric rows or NaN values
+    df = df.dropna(subset=required_columns)
+
+    # Normalize columns using MinMaxScaler
     scaler = MinMaxScaler()
-    for column in ["Open", "High", "Low", "Close"]:
-        if column in df.columns:
-            df[column] = scaler.fit_transform(df[[column]])
-
-    # Drop rows with NaN values
-    df = df.dropna()
+    for column in required_columns:
+        df[column] = scaler.fit_transform(df[[column]])
 
     return df
 
