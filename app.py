@@ -109,5 +109,28 @@ def main():
     auc = roc_auc_score(y_test, ensemble_pred_proba)
     print(f"Ensemble AUC-ROC: {auc}")
 
+    # Generate and display final prediction output
+    # Predict on the test set
+    ensemble_pred = ensemble_predict(rf_model, xgb_model, X_test)
+
+    # Map predictions back to stock/crypto names
+    if "ticker" in merged_data.columns:
+        X_test["ticker"] = merged_data.loc[X_test.index, "ticker"]
+
+    # Add predictions to the dataset for interpretation
+    X_test["prediction"] = ensemble_pred
+    X_test["prediction_label"] = X_test["prediction"].map({0: "Down", 1: "Up"})
+
+    # Display prediction results
+    print("\nPrediction Results:")
+    prediction_summary = X_test[["ticker", "prediction_label"]].value_counts().reset_index()
+    prediction_summary.columns = ["Ticker", "Prediction", "Count"]
+    print(prediction_summary)
+
+    # Optionally, save the predictions to a file
+    prediction_output_path = "data/processed/prediction_results.csv"
+    X_test[["ticker", "prediction_label"]].to_csv(prediction_output_path, index=False)
+    print(f"\nPredictions saved to {prediction_output_path}")
+
 if __name__ == "__main__":
     main()
