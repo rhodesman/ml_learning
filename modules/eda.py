@@ -176,6 +176,23 @@ def merge_datasets(crypto_df, stock_df, news_df):
 
     return combined
 
+def add_price_change_label(df, price_col="price"):
+    """
+    Add a binary column indicating if the price increased the next day.
+
+    Args:
+        df (pd.DataFrame): Input DataFrame with price data.
+        price_col (str): Column name for the price.
+
+    Returns:
+        pd.DataFrame: DataFrame with added 'price_change' column.
+    """
+    df["next_day_price"] = df[price_col].shift(-1)
+    df["price_change"] = (df["next_day_price"] > df[price_col]).astype(int)
+    df = df.drop(columns=["next_day_price"])  # Remove helper column
+    return df
+
+
 if __name__ == "__main__":
     # Load and process cryptocurrency data
     bitcoin_data = load_data("data/raw/bitcoin_data.csv")
