@@ -1,4 +1,7 @@
 from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report
+from sklearn.impute import SimpleImputer
 import pandas as pd
 
 def split_data(df, target_col="price_change"):
@@ -22,9 +25,6 @@ def split_data(df, target_col="price_change"):
     X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 
     return X_train, X_val, X_test, y_train, y_val, y_test
-
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report
 
 def train_classifier(X_train, y_train, X_val, y_val):
     """
