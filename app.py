@@ -1,4 +1,4 @@
-from modules.market_data import collect_crypto_data, collect_stock_data, collect_news_data
+from modules.market_data import collect_crypto_data, collect_stock_data, collect_news_data, fetch_stock_data
 from modules.eda import clean_data, create_technical_indicators, add_price_change_label, merge_datasets
 from modules.train import split_data, train_classifier, evaluate_model
 import os
