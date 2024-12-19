@@ -10,34 +10,37 @@ import numpy as np
 
 def split_data(df, target_col):
     """
-    Split the dataset into training, validation, and test sets.
+    Splits the data into training, validation, and test sets.
 
     Args:
-        df (pd.DataFrame): The input DataFrame.
-        target_col (str): The name of the target column.
+        df (pd.DataFrame): The full dataset.
+        target_col (str): The target column for prediction.
 
     Returns:
-        Tuple of DataFrames: X_train, X_val, X_test, y_train, y_val, y_test
+        tuple: Split datasets (X_train, X_val, X_test, y_train, y_val, y_test).
     """
-    # Dynamically drop columns that exist in the DataFrame
-    drop_columns = [col for col in ["time", "date", target_col, "ticker"] if col in df.columns]
-    print(f"Dropping columns: {drop_columns}")  # Debugging print
-
+    print("Dropping columns:", [target_col, "time", "date"])
+    
     # Features and target
-    features = df.drop(columns=[target_col, "time", "date"], errors="ignore")  # Drop non-numeric columns
+    features = df.drop(columns=[target_col, "time", "date"], errors="ignore").copy()
     if "ticker" in df.columns:
         features["ticker"] = df["ticker"]  # Retain ticker for tracking
     else:
         print("Warning: Ticker column not found in the dataset!")  # Debugging message
     target = df[target_col]
 
-    # Remove non-numeric columns from features
-    numeric_features = features.select_dtypes(include=["number"])
-    print(f"Numeric features retained: {numeric_features.columns}")  # Debugging print
-
-    # Train-validation-test split
-    X_train, X_temp, y_train, y_temp = train_test_split(numeric_features, target, test_size=0.4, random_state=42)
+    # Split the data into training, validation, and test sets
+    X_train, X_temp, y_train, y_temp = train_test_split(features, target, test_size=0.3, random_state=42)
     X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
+
+    # Debugging to verify ticker column presence
+    print("Columns in X_train:", X_train.columns)
+    print("Columns in X_val:", X_val.columns)
+    print("Columns in X_test:", X_test.columns)
+
+    print(f"Shape of train set: {X_train.shape}")
+    print(f"Shape of validation set: {X_val.shape}")
+    print(f"Shape of test set: {X_test.shape}")
 
     return X_train, X_val, X_test, y_train, y_val, y_test
 
