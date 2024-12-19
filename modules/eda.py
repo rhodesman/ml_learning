@@ -159,42 +159,40 @@ def aggregate_news_data(df):
 
 def merge_datasets(crypto_df, stock_df, news_df):
     """
-    Merge cryptocurrency, stock, and news datasets.
+    Merge cryptocurrency, stock, and news datasets on a common time column.
 
     Args:
-        crypto_df (pd.DataFrame): Processed cryptocurrency DataFrame.
-        stock_df (pd.DataFrame): Processed stock DataFrame.
-        news_df (pd.DataFrame): Aggregated news DataFrame.
+        crypto_df (pd.DataFrame): Cryptocurrency data.
+        stock_df (pd.DataFrame): Stock market data.
+        news_df (pd.DataFrame): News data.
 
     Returns:
-        pd.DataFrame: Combined DataFrame for model input.
+        pd.DataFrame: Merged dataset.
     """
-    # Ensure time columns are datetime
+    # Resolve the time column in stock_df
+    time_column = None
+    for col in stock_df.columns:
+        if "time" in col.lower():
+            time_column = col
+            break
+
+    if not time_column:
+        raise KeyError("No time column found in the stock dataset.")
+
+    print(f"Resolved time column in stock data: {time_column}")  # Debug print
+
+    # Convert time columns to datetime
     crypto_df["time"] = pd.to_datetime(crypto_df["time"])
-    stock_df["time"] = pd.to_datetime(stock_df["time"])
+    stock_df[time_column] = pd.to_datetime(stock_df[time_column])
+    news_df["date"] = pd.to_datetime(news_df["date"])
 
-    # Merge crypto and stock data on "time"
-    combined = pd.merge(crypto_df, stock_df, on="time", how="inner")
+    # Rename columns for consistency
+    stock_df = stock_df.rename(columns={time_column: "time"})
 
-    # Add a 'date' column to the combined dataset for merging with news_df
-    combined["date"] = combined["time"].dt.date
-
-    # Ensure news_df 'date' column is datetime
-    news_df["date"] = pd.to_datetime(news_df["date"]).dt.date
-
-    # Debug: Check types before merging
-    print("Combined DataFrame types before merge:")
-    print(combined.dtypes)
-    print("News DataFrame types before merge:")
-    print(news_df.dtypes)
-
-    # Merge with news data
-    combined = pd.merge(combined, news_df, on="date", how="left")
-
-    # Fill missing news counts with 0
-    combined["news_count"] = combined["news_count"].fillna(0)
-
-    return combined
+    # Merge datasets
+    merged = pd.merge(crypto_df, stock_df, on="time", how="inner")
+    merged = pd.merge(merged, news_df, on="time", how="left")
+    return merged
 
 def add_price_change_label(df, price_col="price"):
     """

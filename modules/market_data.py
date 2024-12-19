@@ -33,12 +33,35 @@ def fetch_crypto_data_coingecko(crypto_id, days):
     return df
 
 
-def fetch_stock_data(ticker="AAPL", days=30):
+def fetch_stock_data(ticker, days):
+    """
+    Fetch historical stock data for a given ticker symbol.
+
+    Args:
+        ticker (str): The stock ticker symbol (e.g., "AAPL", "TSLA").
+        days (int): Number of days of historical data to fetch.
+
+    Returns:
+        pd.DataFrame: Stock data with time, adj_close, and volume columns.
+    """
+    print(f"Fetching {days} days of data for {ticker}...")
+
     end_date = datetime.now().date()
     start_date = end_date - timedelta(days=days)
+
+    # Fetch data from Yahoo Finance
     df = yf.download(ticker, start=start_date, end=end_date, interval="1d")
     df.reset_index(inplace=True)
-    df.rename(columns={"Date": "time", "Adj Close": "adj_close", "Volume": "volume"}, inplace=True)
+
+    # Rename columns for consistency
+    df.rename(
+        columns={"Date": "time", "Adj Close": "adj_close", "Volume": "volume"},
+        inplace=True,
+    )
+
+    # Add a ticker column for identification in combined datasets
+    df["ticker"] = ticker
+
     return df
 
 

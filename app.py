@@ -38,12 +38,23 @@ def main():
     bitcoin_data = clean_data(bitcoin_data, required_columns=["time", "price"])
     bitcoin_data = create_technical_indicators(bitcoin_data)
 
-    #aapl_data = clean_data(aapl_data, required_columns=["time", "adj_close"])
-    # Clean stock data
-    print("Cleaning AAPL data...")
-    aapl_data = clean_data(aapl_data, required_columns=["time", "adj_close"])
-    print("Adding technical indicators for AAPL...")
-    aapl_data = create_technical_indicators(aapl_data, price_col="adj_close")
+    # Process each stock dynamically from the config
+    for stock in config["stocks"]:
+        print(f"Processing data for stock: {stock}")
+        
+        # Fetch data for the current stock
+        stock_data = fetch_stock_data(ticker=stock, days=config["lookback_days"])
+        
+        # Clean the stock data
+        print(f"Cleaning data for {stock}...")
+        stock_data = clean_data(stock_data, required_columns=["time", "adj_close"])
+        
+        # Add technical indicators
+        print(f"Adding technical indicators to {stock} data...")
+        stock_data = create_technical_indicators(stock_data, price_col="adj_close")
+        
+        # Save or process stock_data as needed
+        print(f"Finished processing {stock}.\n")
 
     # Ensure 'publishedAt' is converted to datetime
     news_data["publishedAt"] = pd.to_datetime(news_data["publishedAt"], errors="coerce")
@@ -56,7 +67,7 @@ def main():
     news_counts.rename(columns={"publishedAt": "date"}, inplace=True)
 
     # Merge datasets
-    merged_data = merge_datasets(bitcoin_data, aapl_data, news_counts)
+    merged_data = merge_datasets(bitcoin_data, stock_data, news_counts)
     os.makedirs(PROCESSED_DIR, exist_ok=True)
     merged_data.to_csv(MERGED_FILE, index=False)
     #print(f"Merged data saved to {MERGED_FILE}")
