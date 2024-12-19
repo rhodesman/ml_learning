@@ -38,9 +38,8 @@ def split_data(df, target_col):
     ).copy()
     target = df[target_col]
 
-    # Preserve original ticker columns
-    features["ticker_crypto"] = df["ticker_crypto"] if "ticker_crypto" in df.columns else None
-    features["ticker_stock"] = df["ticker_stock"] if "ticker_stock" in df.columns else None
+    # Ensure no non-numeric columns remain
+    features = features.select_dtypes(include=[np.number])
 
     # Split the data into training, validation, and test sets
     X_train, X_temp, y_train, y_temp = train_test_split(features, target, test_size=0.3, random_state=42)
@@ -125,13 +124,33 @@ def train_random_forest(X_train, y_train, X_val, y_val):
         RandomForestClassifier: The trained Random Forest model.
     """
     print("Training Random Forest model...")
+
+    # Check for non-numeric columns
+    if not all(np.issubdtype(dtype, np.number) for dtype in X_train.dtypes):
+        print("Non-numeric columns in X_train:")
+        print(X_train.select_dtypes(exclude=[np.number]).head())
+        raise ValueError("X_train contains non-numeric data. Please check feature preparation.")
+
+    if not all(np.issubdtype(dtype, np.number) for dtype in X_val.dtypes):
+        print("Non-numeric columns in X_val:")
+        print(X_val.select_dtypes(exclude=[np.number]).head())
+        raise ValueError("X_val contains non-numeric data. Please check feature preparation.")
+
+    # Debugging step: Inspect the first few rows of training features
+    print("Sample of X_train:")
+    print(X_train.head())
+
     model = RandomForestClassifier(random_state=42, n_estimators=100)
-    model.fit(X_train, y_train)
+    try:
+        model.fit(X_train, y_train)
+    except ValueError as e:
+        print(f"Error while training Random Forest: {e}")
+        raise
 
     # Evaluate the model on the validation set
     y_val_pred = model.predict(X_val)
     print("Validation Set Performance:")
-    print(classification_report(y_val, y_val_pred))
+    print(classification_report(y_val, y_val_pred, zero_division=0))
     print("Validation Accuracy:", accuracy_score(y_val, y_val_pred))
 
     return model

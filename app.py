@@ -82,8 +82,23 @@ def main():
     # Split data into training, validation, and test sets
     X_train, X_val, X_test, y_train, y_val, y_test, encoders = split_data(merged_data, target_col="price_change")
 
-    # Train Random Forest
-    print("Training Random Forest model...")
+    # Check for non-numeric columns in X_train and X_val
+    if not all(np.issubdtype(dtype, np.number) for dtype in X_train.dtypes):
+        print("Non-numeric columns in X_train:")
+        print(X_train.select_dtypes(exclude=[np.number]).head())
+        raise ValueError("X_train contains non-numeric data. Check feature preparation.")
+
+    if not all(np.issubdtype(dtype, np.number) for dtype in X_val.dtypes):
+        print("Non-numeric columns in X_val:")
+        print(X_val.select_dtypes(exclude=[np.number]).head())
+        raise ValueError("X_val contains non-numeric data. Check feature preparation.")
+
+    # Debugging: Print shapes
+    print(f"Shape of X_train: {X_train.shape}")
+    print(f"Shape of X_val: {X_val.shape}")
+    print(f"Shape of X_test: {X_test.shape}")
+
+    # Train the Random Forest model
     rf_model = train_random_forest(X_train, y_train, X_val, y_val)
 
     # Train XGBoost
