@@ -26,23 +26,32 @@ def load_data(file_path):
 
 def clean_data(df, required_columns):
     """
-    Clean the data by dropping rows with missing values in required columns.
+    Clean the dataset by dropping rows with missing required columns.
 
     Args:
         df (pd.DataFrame): Input DataFrame.
-        required_columns (list): List of columns to check for missing values.
+        required_columns (list): List of required column names.
 
     Returns:
-        pd.DataFrame: Cleaned DataFrame.
+        pd.DataFrame: Cleaned DataFrame with no missing values in required columns.
     """
-    print("Before cleaning:")
-    print(df.info())
+    # Map required columns to their actual names in the DataFrame
+    column_map = {col: [c for c in df.columns if c.startswith(col)] for col in required_columns}
 
-    # Drop rows where required columns are missing
-    df = df.dropna(subset=required_columns)
+    # Resolve actual column names
+    resolved_columns = []
+    for key, matches in column_map.items():
+        if matches:
+            resolved_columns.append(matches[0])  # Use the first matching column
+        else:
+            raise KeyError(f"Required column '{key}' not found in the dataset.")
 
-    print("After cleaning:")
-    print(df.info())
+    print(f"Resolved Columns: {resolved_columns}")  # Debugging print
+
+    # Drop rows with missing values in the resolved columns
+    df = df.dropna(subset=resolved_columns)
+
+    # Return the cleaned DataFrame
     return df
 
 
