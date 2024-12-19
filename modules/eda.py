@@ -102,40 +102,96 @@ def analyze_news_volume(df, query="Cryptocurrency"):
     plt.grid(axis="y")
     plt.show()
 
+def create_technical_indicators(df, price_col="price"):
+    """
+    Create technical indicators for time-series data.
+
+    Args:
+        df (pd.DataFrame): Input DataFrame with price column.
+        price_col (str): Column name for prices.
+
+    Returns:
+        pd.DataFrame: DataFrame with additional technical indicators.
+    """
+    df["7_day_ma"] = df[price_col].rolling(window=7).mean()
+    df["14_day_ma"] = df[price_col].rolling(window=14).mean()
+    df["30_day_ma"] = df[price_col].rolling(window=30).mean()
+    df["7_day_std"] = df[price_col].rolling(window=7).std()
+    df["lag_1"] = df[price_col].shift(1)
+    df["lag_7"] = df[price_col].shift(7)
+
+    return df
+
+def aggregate_news_data(df):
+    """
+    Aggregate news data to count articles per day.
+
+    Args:
+        df (pd.DataFrame): Input DataFrame with publishedAt column.
+
+    Returns:
+        pd.DataFrame: DataFrame with article counts per day.
+    """
+    df["publishedAt"] = pd.to_datetime(df["publishedAt"])
+    df["date"] = df["publishedAt"].dt.date
+    news_counts = df.groupby("date").size().reset_index(name="news_count")
+    return news_counts
+
+def merge_datasets(crypto_df, stock_df, news_df):
+    """
+    Merge cryptocurrency, stock, and news datasets.
+
+    Args:
+        crypto_df (pd.DataFrame): Processed cryptocurrency DataFrame.
+        stock_df (pd.DataFrame): Processed stock DataFrame.
+        news_df (pd.DataFrame): Aggregated news DataFrame.
+
+    Returns:
+        pd.DataFrame: Combined DataFrame for model input.
+    """
+    # Ensure time columns are aligned
+    crypto_df["time"] = pd.to_datetime(crypto_df["time"])
+    stock_df["time"] = pd.to_datetime(stock_df["time"])
+    news_df["date"] = pd.to_datetime(news_df["date"])
+
+    # Merge crypto and stock data on "time"
+    combined = pd.merge(crypto_df, stock_df, on="time", how="inner")
+
+    # Merge news data on "date"
+    combined["date"] = combined["time"].dt.date
+    combined = pd.merge(combined, news_df, on="date", how="left")
+
+    # Fill missing news counts with 0
+    combined["news_count"] = combined["news_count"].fillna(0)
+
+    return combined
 
 if __name__ == "__main__":
-    # Load and inspect cryptocurrency data
+    # Load and process cryptocurrency data
     bitcoin_data = load_data("data/raw/bitcoin_data.csv")
     bitcoin_data = clean_data(bitcoin_data, required_columns=["time", "price"])
-
-    # Save cleaned Bitcoin data
+    bitcoin_data = create_technical_indicators(bitcoin_data)
     processed_bitcoin_path = os.path.join(BASE_DIR, "data/processed/bitcoin_data.csv")
     bitcoin_data.to_csv(processed_bitcoin_path, index=False)
-    print(f"Cleaned Bitcoin data saved to {processed_bitcoin_path}")
+    print(f"Processed Bitcoin data saved to {processed_bitcoin_path}")
 
-    # Visualize Bitcoin data
-    visualize_crypto_prices(bitcoin_data, coin_name="Bitcoin")
-
-    # Load and inspect stock data
+    # Load and process stock data
     aapl_data = load_data("data/raw/AAPL_stock_data.csv")
     aapl_data = clean_data(aapl_data, required_columns=["time", "adj_close"])
-
-    # Save cleaned Apple stock data
+    aapl_data = create_technical_indicators(aapl_data, price_col="adj_close")
     processed_aapl_path = os.path.join(BASE_DIR, "data/processed/AAPL_stock_data.csv")
     aapl_data.to_csv(processed_aapl_path, index=False)
-    print(f"Cleaned AAPL stock data saved to {processed_aapl_path}")
+    print(f"Processed AAPL stock data saved to {processed_aapl_path}")
 
-    # Visualize Apple stock data
-    visualize_stock_prices(aapl_data, ticker="AAPL")
-
-    # Load and inspect news data
+    # Load and process news data
     news_data = load_data("data/raw/cryptocurrency_news_data.csv")
-    news_data = clean_data(news_data, required_columns=["publishedAt"])
-
-    # Save cleaned news data
+    news_counts = aggregate_news_data(news_data)
     processed_news_path = os.path.join(BASE_DIR, "data/processed/cryptocurrency_news_data.csv")
-    news_data.to_csv(processed_news_path, index=False)
-    print(f"Cleaned news data saved to {processed_news_path}")
+    news_counts.to_csv(processed_news_path, index=False)
+    print(f"Processed news data saved to {processed_news_path}")
 
-    # Visualize news data
-    analyze_news_volume(news_data, query="Cryptocurrency")
+    # Merge all datasets
+    merged_data = merge_datasets(bitcoin_data, aapl_data, news_counts)
+    merged_data_path = os.path.join(BASE_DIR, "data/processed/merged_data.csv")
+    merged_data.to_csv(merged_data_path, index=False)
+    print(f"Merged dataset saved to {merged_data_path}")
