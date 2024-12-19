@@ -53,6 +53,10 @@ def fetch_stock_data(ticker, days):
     df = yf.download(ticker, start=start_date, end=end_date, interval="1d")
     df.reset_index(inplace=True)
 
+    # Flatten MultiIndex columns if necessary
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = ['_'.join(col).strip() if isinstance(col, tuple) else col for col in df.columns]
+
     # Rename columns for consistency
     df.rename(
         columns={"Date": "time", "Adj Close": "adj_close", "Volume": "volume"},
