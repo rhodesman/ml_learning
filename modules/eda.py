@@ -178,19 +178,33 @@ def merge_datasets(crypto_df, stock_df, news_df):
     if not time_column:
         raise KeyError("No time column found in the stock dataset.")
 
-    print(f"Resolved time column in stock data: {time_column}")  # Debug print
+    print(f"Resolved time column in stock data: {time_column}")  # Debugging print
+
+    # Resolve the time column in news_df
+    news_time_column = None
+    for col in news_df.columns:
+        if "time" in col.lower() or "date" in col.lower():
+            news_time_column = col
+            break
+
+    if not news_time_column:
+        raise KeyError("No time or date column found in the news dataset.")
+
+    print(f"Resolved time column in news data: {news_time_column}")  # Debugging print
+
+    # Rename columns for consistency
+    stock_df.rename(columns={time_column: "time"}, inplace=True)
+    news_df.rename(columns={news_time_column: "time"}, inplace=True)
 
     # Convert time columns to datetime
     crypto_df["time"] = pd.to_datetime(crypto_df["time"])
-    stock_df[time_column] = pd.to_datetime(stock_df[time_column])
-    news_df["date"] = pd.to_datetime(news_df["date"])
-
-    # Rename columns for consistency
-    stock_df = stock_df.rename(columns={time_column: "time"})
+    stock_df["time"] = pd.to_datetime(stock_df["time"])
+    news_df["time"] = pd.to_datetime(news_df["time"])
 
     # Merge datasets
     merged = pd.merge(crypto_df, stock_df, on="time", how="inner")
     merged = pd.merge(merged, news_df, on="time", how="left")
+
     return merged
 
 def add_price_change_label(df, price_col="price"):
