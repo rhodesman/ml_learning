@@ -42,6 +42,7 @@ def main():
     # Clean stock data
     print("Cleaning AAPL data...")
     aapl_data = clean_data(aapl_data, required_columns=["time", "adj_close"])
+   print("Adding technical indicators for AAPL...")
     aapl_data = create_technical_indicators(aapl_data, price_col="adj_close")
 
     # Ensure 'publishedAt' is converted to datetime
