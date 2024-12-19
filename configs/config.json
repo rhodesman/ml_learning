@@ -1,7 +1,15 @@
 {
     "lookback_days": 365,
-    "stocks": ["AAPL", "TSLA", "MSFT"],
-    "cryptos": ["bitcoin", "ethereum", "dogecoin"],  // <- Use double quotes
+    "stocks": [
+        "AAPL",
+        "TSLA",
+        "MSFT"
+    ],
+    "cryptos": [
+        "bitcoin",
+        "ethereum",
+        "dogecoin"
+    ],
     "news_query": "cryptocurrency",
     "granularity": "daily"
-  }
+}
