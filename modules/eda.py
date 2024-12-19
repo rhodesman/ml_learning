@@ -35,15 +35,15 @@ def clean_data(df, required_columns):
     Returns:
         pd.DataFrame: Cleaned DataFrame with no missing values in required columns.
     """
-    # Map required columns to their actual names in the DataFrame
+    # Check for columns that start with required column names
     column_map = {col: [c for c in df.columns if c.startswith(col)] for col in required_columns}
 
-    # Resolve actual column names
     resolved_columns = []
     for key, matches in column_map.items():
         if matches:
             resolved_columns.append(matches[0])  # Use the first matching column
         else:
+            print(f"Available columns: {df.columns}")  # Debugging print
             raise KeyError(f"Required column '{key}' not found in the dataset.")
 
     print(f"Resolved Columns: {resolved_columns}")  # Debugging print
@@ -51,7 +51,6 @@ def clean_data(df, required_columns):
     # Drop rows with missing values in the resolved columns
     df = df.dropna(subset=resolved_columns)
 
-    # Return the cleaned DataFrame
     return df
 
 
