@@ -3,6 +3,17 @@ from modules.eda import clean_data, create_technical_indicators, add_price_chang
 from modules.train import split_data, train_classifier, evaluate_model
 import os
 import pandas as pd
+import json
+
+# Load configuration
+with open("configs/config.json", "r") as f:
+    config = json.load(f)
+
+LOOKBACK_DAYS = config["lookback_days"]
+STOCKS = config["stocks"]
+CRYPTOS = config["cryptos"]
+NEWS_QUERY = config["news_query"]
+GRANULARITY = config["granularity"]
 
 # Define paths
 RAW_DIR = "data/raw"
