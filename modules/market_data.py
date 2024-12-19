@@ -109,11 +109,21 @@ def collect_crypto_data(crypto_ids, days):
         print(f"Data saved to {filename}")
 
 
-def collect_stock_data():
-    tickers = ["AAPL", "TSLA", "MSFT"]
-    for ticker in tickers:
-        df = fetch_stock_data(ticker=ticker, days=30)
-        save_to_csv(df, f"data/raw/{ticker}_stock_data.csv")
+def collect_stock_data(stocks, days):
+    """
+    Collect and save stock data for multiple stocks.
+
+    Args:
+        stocks (list): List of stock tickers.
+        days (int): Number of days to look back.
+    """
+    for stock in stocks:
+        print(f"Fetching {days} days of data for {stock}...")
+        df = fetch_stock_data(ticker=stock, days=days)
+        filename = f"data/raw/{stock}_stock_data.csv"
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        df.to_csv(filename, index=False)
+        print(f"Data saved to {filename}")
 
 
 def collect_news_data():
