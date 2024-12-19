@@ -90,27 +90,33 @@ def add_technical_indicators(df):
     Add technical indicators to the dataset.
 
     Args:
-        df (pd.DataFrame): Dataset containing price-related columns.
+        df (pd.DataFrame): Dataset containing MultiIndex columns.
 
     Returns:
         pd.DataFrame: Dataset with additional technical indicators.
     """
-    # Try to use 'price' column, fallback to 'Close' or another relevant column
+    # Flatten MultiIndex columns
+    df.columns = ['_'.join(col).strip() for col in df.columns.values]
+
+    print("Flattened Columns in DataFrame:", df.columns)
+
+    # Ensure a valid price column exists
     price_column = None
-    for col in ['price', 'Close', 'Adj Close', 'close']:
+    for col in ['price', 'Close_AAPL', 'adj_close_AAPL']:
         if col in df.columns:
             price_column = col
             break
 
     if not price_column:
-        raise KeyError("No price-related column found in the dataset.")
+        raise KeyError("No valid price column found in the dataset.")
 
     # Add technical indicators
-    df["rsi"] = ta.momentum.RSIIndicator(df[price_column]).rsi()
+    df["rsi"] = ta.momentum.RSIIndicator(df[price_column].squeeze()).rsi()
     df["macd"] = ta.trend.MACD(df[price_column]).macd()
     bollinger = ta.volatility.BollingerBands(df[price_column])
     df["bollinger_hband"] = bollinger.bollinger_hband()
     df["bollinger_lband"] = bollinger.bollinger_lband()
+
     return df
 
 def add_sentiment_scores(news_df):
