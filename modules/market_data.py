@@ -90,14 +90,25 @@ def add_technical_indicators(df):
     Add technical indicators to the dataset.
 
     Args:
-        df (pd.DataFrame): Dataset containing 'price' column.
+        df (pd.DataFrame): Dataset containing price-related columns.
 
     Returns:
         pd.DataFrame: Dataset with additional technical indicators.
     """
-    df["rsi"] = ta.momentum.RSIIndicator(df["Price"]).rsi()
-    df["macd"] = ta.trend.MACD(df["Price"]).macd()
-    bollinger = ta.volatility.BollingerBands(df["Price"])
+    # Try to use 'price' column, fallback to 'Close' or another relevant column
+    price_column = None
+    for col in ['price', 'Close', 'Adj Close', 'close']:
+        if col in df.columns:
+            price_column = col
+            break
+
+    if not price_column:
+        raise KeyError("No price-related column found in the dataset.")
+
+    # Add technical indicators
+    df["rsi"] = ta.momentum.RSIIndicator(df[price_column]).rsi()
+    df["macd"] = ta.trend.MACD(df[price_column]).macd()
+    bollinger = ta.volatility.BollingerBands(df[price_column])
     df["bollinger_hband"] = bollinger.bollinger_hband()
     df["bollinger_lband"] = bollinger.bollinger_lband()
     return df
