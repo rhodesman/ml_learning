@@ -80,11 +80,10 @@ def main():
     # Add labels for price change
     merged_data = add_price_change_label(merged_data)
 
-    print("\nTickers in merged_data before splitting:")
-    if "ticker_crypto" in merged_data.columns:
-        print("Crypto tickers:", merged_data["ticker_crypto"].unique())
-    if "ticker_stock" in merged_data.columns:
-        print("Stock tickers:", merged_data["ticker_stock"].unique())
+    print("\nAfter merging datasets:")
+    print("Columns in merged dataset:", merged_data.columns)
+    print("Unique crypto tickers:", merged_data["ticker_crypto"].unique())
+    print("Unique stock tickers:", merged_data["ticker_stock"].unique())
 
     # Split data into training, validation, and test sets
     X_train, X_val, X_test, y_train, y_val, y_test, encoders, tickers_test = split_data(merged_data, target_col="price_change")
@@ -134,24 +133,28 @@ def main():
     # Compute AUC-ROC
     auc = roc_auc_score(y_test, ensemble_pred_proba)
     print(f"Ensemble AUC-ROC: {auc}")
-
     print("\nTickers in test set:")
-    # print(X_test["ticker"].value_counts())
+
     # Generate and display final prediction output
+
     # Predict on the test set
     ensemble_pred = ensemble_predict(rf_model, xgb_model, X_test)
 
     # Debugging: Check available columns
     print("\nAvailable columns in X_test before mapping tickers:", X_test.columns)
 
-    # Map predictions back to stock/crypto names
+    # Decode crypto and stock tickers in the test set
     if "ticker_crypto_encoded" in X_test.columns:
-        X_test["crypto_ticker"] = encoders["crypto"].inverse_transform(X_test["ticker_crypto_encoded"])
+        X_test["ticker_crypto"] = encoders["crypto"].inverse_transform(X_test["ticker_crypto_encoded"])
     if "ticker_stock_encoded" in X_test.columns:
-        X_test["stock_ticker"] = encoders["stock"].inverse_transform(X_test["ticker_stock_encoded"])
+        X_test["ticker_stock"] = encoders["stock"].inverse_transform(X_test["ticker_stock_encoded"])
 
-    # Combine crypto and stock tickers into a unified "ticker" column
-    X_test["ticker"] = X_test["crypto_ticker"].combine_first(X_test["stock_ticker"])
+    # Combine crypto and stock tickers into a unified ticker column
+    if "ticker_crypto" in X_test.columns or "ticker_stock" in X_test.columns:
+        X_test["ticker"] = X_test["ticker_crypto"].combine_first(X_test["ticker_stock"])
+    else:
+        print("Warning: No ticker information available in the test set.")
+
     print("\nUnified ticker column created. Sample values:")
     print(X_test["ticker"].head())
 
@@ -166,7 +169,7 @@ def main():
 
     # Save predictions to a file
     prediction_output_path = "data/processed/prediction_results.csv"
-    X_test.to_csv(prediction_output_path, index=False)
+    X_test[["ticker", "prediction_label", "crypto_ticker", "stock_ticker"]].to_csv(prediction_output_path, index=False)
     print(f"\nPredictions saved to {prediction_output_path}")
 
 if __name__ == "__main__":
