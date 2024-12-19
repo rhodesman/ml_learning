@@ -147,44 +147,22 @@ def main():
     # Map predictions back to stock/crypto names
     if "ticker_crypto_encoded" in X_test.columns:
         X_test["crypto_ticker"] = encoders["crypto"].inverse_transform(X_test["ticker_crypto_encoded"])
-        print("\nDecoded crypto tickers in X_test:")
-        print(X_test["crypto_ticker"].unique())
-    else:
-        print("\nWarning: 'ticker_crypto_encoded' not found in X_test.")
-
     if "ticker_stock_encoded" in X_test.columns:
         X_test["stock_ticker"] = encoders["stock"].inverse_transform(X_test["ticker_stock_encoded"])
-        print("\nDecoded stock tickers in X_test:")
-        print(X_test["stock_ticker"].unique())
-    else:
-        print("\nWarning: 'ticker_stock_encoded' not found in X_test.")
 
     # Combine crypto and stock tickers into a unified "ticker" column
-    if "crypto_ticker" in X_test.columns or "stock_ticker" in X_test.columns:
-        X_test["ticker"] = X_test.get("crypto_ticker").combine_first(X_test.get("stock_ticker"))
-        print("\nUnified ticker column created. Sample values:")
-        print(X_test["ticker"].head())
-    else:
-        print("\nWarning: No crypto_ticker or stock_ticker columns found. Unified ticker cannot be created.")
-
-    # Debugging: Check if 'ticker' column exists before value counts
-    if "ticker" in X_test.columns:
-        print("\nTickers in test set:")
-        print(X_test["ticker"].value_counts())
-    else:
-        print("\nError: 'ticker' column is missing in X_test. Skipping value counts.")
+    X_test["ticker"] = X_test["crypto_ticker"].combine_first(X_test["stock_ticker"])
+    print("\nUnified ticker column created. Sample values:")
+    print(X_test["ticker"].head())
 
     # Add predictions to the dataset for interpretation
     X_test["prediction"] = ensemble_pred
     X_test["prediction_label"] = X_test["prediction"].map({0: "Down", 1: "Up"})
 
-    # Display predictions grouped by tickers
-    if "ticker" in X_test.columns:
-        print("\nPrediction Results by Ticker:")
-        prediction_summary = X_test.groupby(["ticker", "prediction_label"]).size().reset_index(name="Count")
-        print(prediction_summary)
-    else:
-        print("\nWarning: Cannot group predictions by ticker as 'ticker' column is missing.")
+    # Display prediction results grouped by ticker
+    print("\nPrediction Results by Ticker:")
+    prediction_summary = X_test.groupby(["ticker", "prediction_label"]).size().reset_index(name="Count")
+    print(prediction_summary)
 
     # Save predictions to a file
     prediction_output_path = "data/processed/prediction_results.csv"

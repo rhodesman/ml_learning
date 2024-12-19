@@ -26,13 +26,15 @@ def split_data(df, target_col):
     crypto_encoder = LabelEncoder()
     stock_encoder = LabelEncoder()
 
-    if "ticker_crypto_encoded" in df.columns:
-        print("\nUnique crypto tickers in train set:", df.loc[X_train.index, "ticker_crypto"].unique())
-        print("Unique crypto tickers in validation set:", df.loc[X_val.index, "ticker_crypto"].unique())
-        print("Unique crypto tickers in test set:", df.loc[X_test.index, "ticker_crypto"].unique())
-    if "ticker_stock_encoded" in df.columns:
-        print("\nUnique stock tickers in train set:", df.loc[X_train.index, "ticker_stock"].unique())
-        print("Unique stock tickers in validation set:", df.loc[X_val.index, "ticker_stock"].unique())
+    if "ticker_crypto_encoded" in features.columns:
+        print("\nCrypto tickers in train set:", features.loc[X_train.index, "ticker_crypto_encoded"].unique())
+        print("Crypto tickers in validation set:", features.loc[X_val.index, "ticker_crypto_encoded"].unique())
+        print("Crypto tickers in test set:", features.loc[X_test.index, "ticker_crypto_encoded"].unique())
+
+    if "ticker_stock_encoded" in features.columns:
+        print("\nStock tickers in train set:", features.loc[X_train.index, "ticker_stock_encoded"].unique())
+        print("Stock tickers in validation set:", features.loc[X_val.index, "ticker_stock_encoded"].unique())
+        print("Stock tickers in test set:", features.loc[X_test.index, "ticker_stock_encoded"].unique())
 
     # Encode ticker columns
     if "ticker_crypto" in df.columns:

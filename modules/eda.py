@@ -202,8 +202,12 @@ def merge_datasets(crypto_df, stock_df, news_df):
     merged = pd.merge(merged, news_df, on="time", how="left")
 
     # Debugging merged dataset
-    print("Merged dataset columns:", merged.columns)
-    print("Number of rows in merged dataset:", len(merged))
+    print("\nAfter merging datasets:")
+    print("Columns in merged dataset:", merged.columns)
+    if "ticker_crypto" in merged.columns:
+        print("Unique crypto tickers:", merged["ticker_crypto"].unique())
+    if "ticker_stock" in merged.columns:
+        print("Unique stock tickers:", merged["ticker_stock"].unique())
 
     return merged
 
