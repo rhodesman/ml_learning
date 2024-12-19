@@ -4,6 +4,7 @@ from sklearn.metrics import classification_report, accuracy_score
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import LabelEncoder
 import xgboost as xgb
 import pandas as pd
 import numpy as np
@@ -17,23 +18,28 @@ def split_data(df, target_col):
         target_col (str): The target column for prediction.
 
     Returns:
-        tuple: Split datasets (X_train, X_val, X_test, y_train, y_val, y_test).
+        tuple: Split datasets (X_train, X_val, X_test, y_train, y_val, y_test, encoders).
     """
     print("Dropping columns:", [target_col, "time", "date"])
-    
+
+    # Initialize label encoders
+    crypto_encoder = LabelEncoder()
+    stock_encoder = LabelEncoder()
+
+    # Encode ticker columns
+    if "ticker_crypto" in df.columns:
+        df["ticker_crypto_encoded"] = crypto_encoder.fit_transform(df["ticker_crypto"])
+    if "ticker_stock" in df.columns:
+        df["ticker_stock_encoded"] = stock_encoder.fit_transform(df["ticker_stock"])
+
     # Features and target
-    features = df.drop(columns=[target_col, "time", "date"], errors="ignore").copy()
-    if "ticker" in df.columns:
-        features["ticker"] = df["ticker"]  # Retain ticker for tracking
-    else:
-        print("Warning: Ticker column not found in the dataset!")  # Debugging message
+    features = df.drop(columns=[target_col, "time", "date", "ticker_crypto", "ticker_stock"], errors="ignore").copy()
     target = df[target_col]
 
     # Split the data into training, validation, and test sets
     X_train, X_temp, y_train, y_temp = train_test_split(features, target, test_size=0.3, random_state=42)
     X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 
-    # Debugging to verify ticker column presence
     print("Columns in X_train:", X_train.columns)
     print("Columns in X_val:", X_val.columns)
     print("Columns in X_test:", X_test.columns)
@@ -42,7 +48,7 @@ def split_data(df, target_col):
     print(f"Shape of validation set: {X_val.shape}")
     print(f"Shape of test set: {X_test.shape}")
 
-    return X_train, X_val, X_test, y_train, y_val, y_test
+    return X_train, X_val, X_test, y_train, y_val, y_test, {"crypto": crypto_encoder, "stock": stock_encoder}
 
 def train_classifier(X_train, y_train, X_val, y_val):
     """
