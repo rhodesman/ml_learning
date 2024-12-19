@@ -1,10 +1,12 @@
 import os
+import ta
 import requests
 import pandas as pd
 from datetime import datetime, timedelta
 import yfinance as yf
 from pycoingecko import CoinGeckoAPI
 from dotenv import load_dotenv
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 # Load environment variables from .env file
 load_dotenv()
@@ -83,6 +85,38 @@ def fetch_news_data(query, days):
     df["publishedAt"] = pd.to_datetime(df["publishedAt"], errors="coerce")
     return df
 
+def add_technical_indicators(df):
+    """
+    Add technical indicators to the dataset.
+
+    Args:
+        df (pd.DataFrame): Dataset containing 'price' column.
+
+    Returns:
+        pd.DataFrame: Dataset with additional technical indicators.
+    """
+    df["rsi"] = ta.momentum.RSIIndicator(df["price"]).rsi()
+    df["macd"] = ta.trend.MACD(df["price"]).macd()
+    bollinger = ta.volatility.BollingerBands(df["price"])
+    df["bollinger_hband"] = bollinger.bollinger_hband()
+    df["bollinger_lband"] = bollinger.bollinger_lband()
+    return df
+
+def add_sentiment_scores(news_df):
+    """
+    Add sentiment scores to news articles.
+
+    Args:
+        news_df (pd.DataFrame): News dataset with a 'description' column.
+
+    Returns:
+        pd.DataFrame: News dataset with a 'sentiment' column.
+    """
+    analyzer = SentimentIntensityAnalyzer()
+    news_df["sentiment"] = news_df["description"].apply(
+        lambda x: analyzer.polarity_scores(x)["compound"] if pd.notna(x) else 0
+    )
+    return news_df
 
 def save_to_csv(dataframe, filepath):
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
@@ -100,6 +134,7 @@ def collect_crypto_data(crypto_ids, days):
     """
     for crypto in crypto_ids:
         df = fetch_crypto_data_coingecko(crypto, days)
+        df = add_technical_indicators(df)
         filename = f"data/raw/{crypto}_data.csv"
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         df.to_csv(filename, index=False)
@@ -117,6 +152,7 @@ def collect_stock_data(stocks, days):
     for stock in stocks:
         print(f"Fetching {days} days of data for {stock}...")
         df = fetch_stock_data(ticker=stock, days=days)
+        df = add_technical_indicators(df)
         filename = f"data/raw/{stock}_stock_data.csv"
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         df.to_csv(filename, index=False)
@@ -133,6 +169,7 @@ def collect_news_data(query, days):
     """
     print(f"Fetching news data for query: {query} over {days} days...")
     df_news = fetch_news_data(query=query, days=days)
+    df_news = add_sentiment_scores(df_news)
     filename = "data/raw/news_data.csv"
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     df_news.to_csv(filename, index=False)

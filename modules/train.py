@@ -2,6 +2,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.impute import SimpleImputer
+from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import RandomForestClassifier
+import xgboost as xgb
 import pandas as pd
 
 def split_data(df, target_col="price_change"):
@@ -25,8 +28,6 @@ def split_data(df, target_col="price_change"):
     X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 
     return X_train, X_val, X_test, y_train, y_val, y_test
-
-from sklearn.model_selection import cross_val_score
 
 def train_classifier(X_train, y_train, X_val, y_val):
     """
@@ -82,6 +83,52 @@ def evaluate_model(model, X_test, y_test, feature_names):
     y_pred = model.predict(X_test)
     print("Test Set Performance:")
     print(classification_report(y_test, y_pred, zero_division=0))
+
+def train_random_forest(X_train, y_train, X_val, y_val):
+    """
+    Train a Random Forest classifier.
+
+    Args:
+        X_train (pd.DataFrame): Training features.
+        y_train (pd.Series): Training labels.
+        X_val (pd.DataFrame): Validation features.
+        y_val (pd.Series): Validation labels.
+
+    Returns:
+        model: Trained Random Forest model.
+    """
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X_train, y_train)
+
+    # Evaluate on validation set
+    y_pred = model.predict(X_val)
+    print("Validation Set Performance (Random Forest):")
+    print(classification_report(y_val, y_pred, zero_division=0))
+
+    return model
+
+def train_xgboost(X_train, y_train, X_val, y_val):
+    """
+    Train an XGBoost classifier.
+
+    Args:
+        X_train (pd.DataFrame): Training features.
+        y_train (pd.Series): Training labels.
+        X_val (pd.DataFrame): Validation features.
+        y_val (pd.Series): Validation labels.
+
+    Returns:
+        model: Trained XGBoost model.
+    """
+    model = xgb.XGBClassifier(use_label_encoder=False, eval_metric="logloss")
+    model.fit(X_train, y_train)
+
+    # Evaluate on validation set
+    y_pred = model.predict(X_val)
+    print("Validation Set Performance (XGBoost):")
+    print(classification_report(y_val, y_pred, zero_division=0))
+
+    return model
 
 def preprocess_features(X, feature_names=None):
     """

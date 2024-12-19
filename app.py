@@ -58,18 +58,40 @@ def main():
     #print(f"Merged data saved to {MERGED_FILE}")
 
    # Step 3: Model Training
-    print("Training model...")
+    print("Training models...")
+
+    # Add labels for price change
     merged_data = add_price_change_label(merged_data)
 
     # Split data into training, validation, and test sets
     X_train, X_val, X_test, y_train, y_val, y_test = split_data(merged_data, target_col="price_change")
 
-    # Train the classifier and capture the feature names
-    model, feature_names = train_classifier(X_train, y_train, X_val, y_val)
+    # Train Random Forest
+    print("Training Random Forest model...")
+    rf_model = train_random_forest(X_train, y_train, X_val, y_val)
 
-    # Step 4: Model Evaluation
-    print("Evaluating model...")
-    evaluate_model(model, X_test, y_test, feature_names)
+    # Train XGBoost
+    print("Training XGBoost model...")
+    xgb_model = train_xgboost(X_train, y_train, X_val, y_val)
+
+    # Step 4: Ensemble Evaluation
+    print("Evaluating Ensemble...")
+
+    # Get probabilities for the test set
+    rf_pred_proba = rf_model.predict_proba(X_test)[:, 1]  # Random Forest probabilities
+    xgb_pred_proba = xgb_model.predict_proba(X_test)[:, 1]  # XGBoost probabilities
+
+    # Average the probabilities
+    ensemble_pred_proba = (rf_pred_proba + xgb_pred_proba) / 2
+    ensemble_pred = (ensemble_pred_proba >= 0.5).astype(int)
+
+    # Evaluate Ensemble Performance
+    print("Ensemble Model Performance:")
+    print(classification_report(y_test, ensemble_pred, zero_division=0))
+
+    # Compute AUC-ROC
+    auc = roc_auc_score(y_test, ensemble_pred_proba)
+    print(f"Ensemble AUC-ROC: {auc}")
 
 if __name__ == "__main__":
     main()
