@@ -26,8 +26,10 @@ def split_data(df, target_col):
     crypto_encoder = LabelEncoder()
     stock_encoder = LabelEncoder()
 
-    print("\nOriginal crypto tickers:", crypto_encoder.classes_ if 'crypto_encoder' in locals() else [])
-    print("\nOriginal stock tickers:", stock_encoder.classes_ if 'stock_encoder' in locals() else [])
+    if "ticker_crypto_encoded" in df.columns:
+        print("\nOriginal crypto tickers:", crypto_encoder.classes_)
+    if "ticker_stock_encoded" in df.columns:
+        print("\nOriginal stock tickers:", stock_encoder.classes_)
 
     # Encode ticker columns
     if "ticker_crypto" in df.columns:
