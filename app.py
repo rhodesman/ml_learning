@@ -81,7 +81,7 @@ def main():
     merged_data = add_price_change_label(merged_data)
 
     # Split data into training, validation, and test sets
-    X_train, X_val, X_test, y_train, y_val, y_test, encoders = split_data(merged_data, target_col="price_change")
+    X_train, X_val, X_test, y_train, y_val, y_test, encoders, tickers_test = split_data(merged_data, target_col="price_change")
 
     # Check for non-numeric columns in X_train and X_val
     if not all(np.issubdtype(dtype, np.number) for dtype in X_train.dtypes):
@@ -137,22 +137,30 @@ def main():
     if "ticker_stock_encoded" in X_test.columns:
         X_test["stock_ticker"] = encoders["stock"].inverse_transform(X_test["ticker_stock_encoded"])
 
-    # Add predictions to the dataset for interpretation
-    X_test["prediction"] = ensemble_pred
-    X_test["prediction_label"] = X_test["prediction"].map({0: "Down", 1: "Up"})
+    # Use tickers_test to map predictions back to original tickers
+    if "ticker_crypto" in tickers_test.columns:
+        X_test["ticker_crypto"] = tickers_test["ticker_crypto"]
+    if "ticker_stock" in tickers_test.columns:
+        X_test["ticker_stock"] = tickers_test["ticker_stock"]
 
-    # Ensure ticker column is present
-    if "ticker_crypto" in X_test.columns or "ticker_stock" in X_test.columns:
-        X_test["ticker"] = X_test["ticker_crypto"].combine_first(X_test["ticker_stock"])
+    # Combine crypto and stock tickers into a unified "ticker" column
+    if "crypto_ticker" in X_test.columns or "stock_ticker" in X_test.columns:
+        X_test["ticker"] = X_test["crypto_ticker"].combine_first(X_test["stock_ticker"])
         print("\nTickers in test set:")
         print(X_test["ticker"].value_counts())
     else:
         print("Warning: No ticker information available in test set.")
 
-    # Display prediction results grouped by ticker
+    # Add predictions to the dataset for interpretation
+    X_test["prediction"] = ensemble_pred
+    X_test["prediction_label"] = X_test["prediction"].map({0: "Down", 1: "Up"})
+
+    # Display predictions grouped by tickers
     print("\nPrediction Results:")
-    prediction_summary = X_test.groupby(["crypto_ticker", "stock_ticker", "prediction_label"]).size().reset_index(name="Count")
-    print(prediction_summary)
+    if "ticker_crypto" in X_test.columns:
+        print(X_test[["ticker_crypto", "prediction_label"]].value_counts())
+    if "ticker_stock" in X_test.columns:
+        print(X_test[["ticker_stock", "prediction_label"]].value_counts())
 
     # Optionally, save the predictions to a file
     prediction_output_path = "data/processed/prediction_results.csv"
