@@ -30,7 +30,13 @@ def main():
     aapl_data = clean_data(aapl_data, required_columns=["time", "adj_close"])
     aapl_data = create_technical_indicators(aapl_data, price_col="adj_close")
 
-    news_data = clean_data(news_data, required_columns=["publishedAt"])
+    # Ensure 'publishedAt' is converted to datetime
+    news_data["publishedAt"] = pd.to_datetime(news_data["publishedAt"], errors="coerce")
+
+    # Handle rows where conversion failed (if any)
+    news_data = news_data.dropna(subset=["publishedAt"])
+
+    # Group by date
     news_counts = news_data.groupby(news_data["publishedAt"].dt.date).size().reset_index(name="news_count")
     news_counts.rename(columns={"publishedAt": "date"}, inplace=True)
 
