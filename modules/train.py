@@ -33,8 +33,14 @@ def split_data(df, target_col):
         df["ticker_stock_encoded"] = stock_encoder.fit_transform(df["ticker_stock"])
 
     # Features and target
-    features = df.drop(columns=[target_col, "time", "date", "ticker_crypto", "ticker_stock"], errors="ignore").copy()
+    features = df.drop(
+        columns=[target_col, "time", "date", "ticker_crypto", "ticker_stock"], errors="ignore"
+    ).copy()
     target = df[target_col]
+
+    # Preserve original ticker columns
+    features["ticker_crypto"] = df["ticker_crypto"] if "ticker_crypto" in df.columns else None
+    features["ticker_stock"] = df["ticker_stock"] if "ticker_stock" in df.columns else None
 
     # Split the data into training, validation, and test sets
     X_train, X_temp, y_train, y_temp = train_test_split(features, target, test_size=0.3, random_state=42)

@@ -125,6 +125,14 @@ def main():
     X_test["prediction"] = ensemble_pred
     X_test["prediction_label"] = X_test["prediction"].map({0: "Down", 1: "Up"})
 
+    # Ensure ticker column is present
+    if "ticker_crypto" in X_test.columns or "ticker_stock" in X_test.columns:
+        X_test["ticker"] = X_test["ticker_crypto"].combine_first(X_test["ticker_stock"])
+        print("\nTickers in test set:")
+        print(X_test["ticker"].value_counts())
+    else:
+        print("Warning: No ticker information available in test set.")
+
     # Display prediction results grouped by ticker
     print("\nPrediction Results:")
     prediction_summary = X_test.groupby(["crypto_ticker", "stock_ticker", "prediction_label"]).size().reset_index(name="Count")
