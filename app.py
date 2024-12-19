@@ -38,6 +38,9 @@ def main():
     bitcoin_data = clean_data(bitcoin_data, required_columns=["time", "price"])
     bitcoin_data = create_technical_indicators(bitcoin_data)
 
+    #aapl_data = clean_data(aapl_data, required_columns=["time", "adj_close"])
+    # Clean stock data
+    print("Cleaning AAPL data...")
     aapl_data = clean_data(aapl_data, required_columns=["time", "adj_close"])
     aapl_data = create_technical_indicators(aapl_data, price_col="adj_close")
 
