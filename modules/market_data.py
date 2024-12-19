@@ -133,7 +133,9 @@ def collect_crypto_data(crypto_ids, days):
         days (int): Number of days to look back.
     """
     for crypto in crypto_ids:
+        
         df = fetch_crypto_data_coingecko(crypto, days)
+        print("Columns in DataFrame:", df.columns)
         df = add_technical_indicators(df)
         filename = f"data/raw/{crypto}_data.csv"
         os.makedirs(os.path.dirname(filename), exist_ok=True)
@@ -150,8 +152,10 @@ def collect_stock_data(stocks, days):
         days (int): Number of days to look back.
     """
     for stock in stocks:
+        
         print(f"Fetching {days} days of data for {stock}...")
         df = fetch_stock_data(ticker=stock, days=days)
+        print("Columns in DataFrame:", df.columns)
         df = add_technical_indicators(df)
         filename = f"data/raw/{stock}_stock_data.csv"
         os.makedirs(os.path.dirname(filename), exist_ok=True)
