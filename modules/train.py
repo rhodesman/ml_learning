@@ -118,7 +118,7 @@ def train_random_forest(X_train, y_train, X_val, y_val):
 
 def train_xgboost(X_train, y_train, X_val, y_val):
     """
-    Train an XGBoost classifier.
+    Train an XGBoost classifier and evaluate it on the validation set.
 
     Args:
         X_train (pd.DataFrame): Training features.
@@ -127,15 +127,24 @@ def train_xgboost(X_train, y_train, X_val, y_val):
         y_val (pd.Series): Validation labels.
 
     Returns:
-        model: Trained XGBoost model.
+        xgb.XGBClassifier: The trained XGBoost model.
     """
-    model = xgb.XGBClassifier(use_label_encoder=False, eval_metric="logloss")
+    print("Training XGBoost model...")
+    model = xgb.XGBClassifier(
+        random_state=42,
+        use_label_encoder=False,
+        eval_metric="logloss",
+        n_estimators=100,
+        learning_rate=0.1,
+        max_depth=6
+    )
     model.fit(X_train, y_train)
 
-    # Evaluate on validation set
-    y_pred = model.predict(X_val)
-    print("Validation Set Performance (XGBoost):")
-    print(classification_report(y_val, y_pred, zero_division=0))
+    # Evaluate the model on the validation set
+    y_val_pred = model.predict(X_val)
+    print("Validation Set Performance:")
+    print(classification_report(y_val, y_val_pred))
+    print("Validation Accuracy:", accuracy_score(y_val, y_val_pred))
 
     return model
 
