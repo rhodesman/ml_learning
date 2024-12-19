@@ -6,6 +6,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestClassifier
 import xgboost as xgb
 import pandas as pd
+import numpy as np
 
 def split_data(df, target_col):
     """
@@ -180,6 +181,33 @@ def preprocess_features(X, feature_names=None):
 
     #print("Feature names after preprocessing:", X.columns.tolist())
     return X_processed, X.columns.tolist()
+
+def ensemble_predict(rf_model, xgb_model, X_test):
+    """
+    Generate predictions using an ensemble of Random Forest and XGBoost models.
+
+    Args:
+        rf_model: Trained Random Forest model.
+        xgb_model: Trained XGBoost model.
+        X_test (pd.DataFrame): Test features.
+
+    Returns:
+        np.ndarray: Ensemble predictions (0 or 1).
+    """
+    print("Generating ensemble predictions...")
+    
+    # Random Forest predictions
+    rf_pred_proba = rf_model.predict_proba(X_test)[:, 1]  # Probability of class 1
+    # XGBoost predictions
+    xgb_pred_proba = xgb_model.predict_proba(X_test)[:, 1]  # Probability of class 1
+
+    # Average the probabilities
+    ensemble_pred_proba = (rf_pred_proba + xgb_pred_proba) / 2
+
+    # Convert probabilities to binary predictions
+    ensemble_pred = np.where(ensemble_pred_proba >= 0.5, 1, 0)
+    
+    return ensemble_pred
 
 if __name__ == "__main__":
     # Load processed data
