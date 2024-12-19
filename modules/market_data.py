@@ -99,22 +99,24 @@ def add_technical_indicators(df):
     if isinstance(df.columns, pd.MultiIndex):
         print("Detected MultiIndex columns. Flattening...")
         df.columns = ['_'.join(col).strip() for col in df.columns.values]
+        print("Flattened Columns:", df.columns)
 
-    # Determine the price column
+    # Dynamically detect the price column
     price_column = None
-    for col in ['price', 'Close_AAPL', 'adj_close_AAPL', 'Close', 'adj_close']:
-        if col in df.columns:
+    for col in df.columns:
+        if "price" in col.lower() or "close" in col.lower():
             price_column = col
             break
 
     if not price_column:
+        print("Columns available:", df.columns)  # Debug print
         raise KeyError("No valid price column found in the dataset.")
 
     # Add technical indicators
     print(f"Using price column: {price_column}")
-    df["rsi"] = ta.momentum.RSIIndicator(df[price_column]).rsi()
-    df["macd"] = ta.trend.MACD(df[price_column]).macd()
-    bollinger = ta.volatility.BollingerBands(df[price_column])
+    df["rsi"] = ta.momentum.RSIIndicator(df[price_column].astype(float)).rsi()
+    df["macd"] = ta.trend.MACD(df[price_column].astype(float)).macd()
+    bollinger = ta.volatility.BollingerBands(df[price_column].astype(float))
     df["bollinger_hband"] = bollinger.bollinger_hband()
     df["bollinger_lband"] = bollinger.bollinger_lband()
 
