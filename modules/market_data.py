@@ -2,33 +2,27 @@ import os
 import requests
 import pandas as pd
 from datetime import datetime, timedelta
-from dotenv import load_dotenv
 import yfinance as yf
+from pycoingecko import CoinGeckoAPI
 
-# Load environment variables
-load_dotenv()
+cg = CoinGeckoAPI()
 
+def fetch_crypto_data_coingecko(crypto_id, days):
+    """
+    Fetch historical cryptocurrency data from CoinGecko.
 
-def fetch_crypto_data_coingecko(coin_id="bitcoin", vs_currency="usd", days=365):
-    url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart"
-    params = {
-        "vs_currency": vs_currency,
-        "days": days,
-        "interval": "daily"
-    }
+    Args:
+        crypto_id (str): The CoinGecko ID of the cryptocurrency (e.g., "bitcoin").
+        days (int): Number of days to look back.
 
-    response = requests.get(url, params=params)
-    if response.status_code != 200:
-        raise ValueError(f"Error fetching data from CoinGecko API: {response.status_code} - {response.text}")
-
-    data = response.json()
-    prices = data.get("prices", [])
-    volumes = data.get("total_volumes", [])
-
-    df_prices = pd.DataFrame(prices, columns=["time", "price"])
-    df_volumes = pd.DataFrame(volumes, columns=["time", "volume"])
-    df = pd.merge(df_prices, df_volumes, on="time")
-
+    Returns:
+        pd.DataFrame: DataFrame containing historical crypto data.
+    """
+    print(f"Fetching {days} days of data for {crypto_id}...")
+    data = cg.get_coin_market_chart_by_id(id=crypto_id, vs_currency="usd", days=days)
+    prices = pd.DataFrame(data["prices"], columns=["time", "price"])
+    volumes = pd.DataFrame(data["total_volumes"], columns=["time", "volume"])
+    df = pd.merge(prices, volumes, on="time")
     df["time"] = pd.to_datetime(df["time"], unit="ms")
     return df
 
@@ -99,11 +93,20 @@ def save_to_csv(dataframe, filepath):
     print(f"Data saved to {filepath}")
 
 
-def collect_crypto_data():
-    coins = ["bitcoin", "ethereum", "dogecoin"]
-    for coin in coins:
-        df = fetch_crypto_data_coingecko(coin_id=coin, vs_currency="usd", days=30)
-        save_to_csv(df, f"data/raw/{coin}_data.csv")
+def collect_crypto_data(crypto_ids, days):
+    """
+    Collect and save cryptocurrency data for multiple cryptocurrencies.
+
+    Args:
+        crypto_ids (list): List of CoinGecko cryptocurrency IDs.
+        days (int): Number of days to look back.
+    """
+    for crypto in crypto_ids:
+        df = fetch_crypto_data_coingecko(crypto, days)
+        filename = f"data/raw/{crypto}_data.csv"
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        df.to_csv(filename, index=False)
+        print(f"Data saved to {filename}")
 
 
 def collect_stock_data():
@@ -116,5 +119,5 @@ def collect_stock_data():
 def collect_news_data():
     queries = ["cryptocurrency", "stock market", "technology"]
     for query in queries:
-        df = fetch_news_data(query=query, days=29)
-        save_to_csv(df, f"data/raw/{query.replace(' ', '_')}_news_data.csv")
+        df_news = fetch_news_data(query=config["news_query"], days=config["lookback_days"])
+        save_to_csv(df_news, "data/raw/news_data.csv")

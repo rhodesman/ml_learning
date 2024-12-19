@@ -11,13 +11,13 @@ MERGED_FILE = os.path.join(PROCESSED_DIR, "merged_data.csv")
 
 def main():
     # Step 1: Data Collection
-    print("Collecting data...")
-    collect_crypto_data()
-    collect_stock_data()
+    #print("Collecting data...")
+    collect_crypto_data(config["cryptos"], config["lookback_days"])
+    collect_stock_data(config["stocks"], config["lookback_days"])
     collect_news_data()
 
     # Step 2: Data Cleaning and Feature Engineering
-    print("Processing data...")
+    #print("Processing data...")
     # Load raw data
     bitcoin_data = pd.read_csv(os.path.join(RAW_DIR, "bitcoin_data.csv"))
     aapl_data = pd.read_csv(os.path.join(RAW_DIR, "AAPL_stock_data.csv"))
@@ -44,7 +44,7 @@ def main():
     merged_data = merge_datasets(bitcoin_data, aapl_data, news_counts)
     os.makedirs(PROCESSED_DIR, exist_ok=True)
     merged_data.to_csv(MERGED_FILE, index=False)
-    print(f"Merged data saved to {MERGED_FILE}")
+    #print(f"Merged data saved to {MERGED_FILE}")
 
    # Step 3: Model Training
     print("Training model...")
