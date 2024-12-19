@@ -53,6 +53,9 @@ def fetch_stock_data(ticker, days):
     df = yf.download(ticker, start=start_date, end=end_date, interval="1d")
     df.reset_index(inplace=True)
 
+    # Debugging print for raw column names before any changes
+    print(f"Columns in {ticker} data before cleaning:", df.columns)
+
     # Flatten MultiIndex columns if necessary
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = ['_'.join(col).strip() if isinstance(col, tuple) else col for col in df.columns]
@@ -65,6 +68,9 @@ def fetch_stock_data(ticker, days):
 
     # Add a ticker column for identification in combined datasets
     df["ticker"] = ticker
+
+    # Debugging print for column names
+    print(f"Columns in {ticker} data after renaming:", df.columns)
 
     return df
 
