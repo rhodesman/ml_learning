@@ -80,7 +80,11 @@ def main():
     # Add labels for price change
     merged_data = add_price_change_label(merged_data)
 
-    print("\nColumns in merged_data before split_data:", merged_data.columns)
+    print("\nTickers in merged_data before splitting:")
+    if "ticker_crypto" in merged_data.columns:
+        print("Crypto tickers:", merged_data["ticker_crypto"].unique())
+    if "ticker_stock" in merged_data.columns:
+        print("Stock tickers:", merged_data["ticker_stock"].unique())
 
     # Split data into training, validation, and test sets
     X_train, X_val, X_test, y_train, y_val, y_test, encoders, tickers_test = split_data(merged_data, target_col="price_change")

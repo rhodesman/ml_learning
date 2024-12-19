@@ -26,6 +26,9 @@ def split_data(df, target_col):
     crypto_encoder = LabelEncoder()
     stock_encoder = LabelEncoder()
 
+    print("\nOriginal crypto tickers:", crypto_encoder.classes_ if 'crypto_encoder' in locals() else [])
+    print("\nOriginal stock tickers:", stock_encoder.classes_ if 'stock_encoder' in locals() else [])
+
     # Encode ticker columns
     if "ticker_crypto" in df.columns:
         df["ticker_crypto_encoded"] = crypto_encoder.fit_transform(df["ticker_crypto"])
@@ -47,15 +50,17 @@ def split_data(df, target_col):
     _, tickers_temp = train_test_split(tickers, test_size=0.3, random_state=42)
     tickers_val, tickers_test = train_test_split(tickers_temp, test_size=0.5, random_state=42)
 
-    print("\nColumns in features before splitting:", features.columns)
-    print("\nColumns in features after splitting:")
-    print("Train set:", X_train.columns)
-    print("Validation set:", X_val.columns)
-    print("Test set:", X_test.columns)
+    print("\nUnique tickers in train set:")
+    print("Crypto:", X_train["ticker_crypto_encoded"].unique() if "ticker_crypto_encoded" in X_train.columns else [])
+    print("Stock:", X_train["ticker_stock_encoded"].unique() if "ticker_stock_encoded" in X_train.columns else [])
 
-    print(f"Shape of train set: {X_train.shape}")
-    print(f"Shape of validation set: {X_val.shape}")
-    print(f"Shape of test set: {X_test.shape}")
+    print("\nUnique tickers in validation set:")
+    print("Crypto:", X_val["ticker_crypto_encoded"].unique() if "ticker_crypto_encoded" in X_val.columns else [])
+    print("Stock:", X_val["ticker_stock_encoded"].unique() if "ticker_stock_encoded" in X_val.columns else [])
+
+    print("\nUnique tickers in test set:")
+    print("Crypto:", X_test["ticker_crypto_encoded"].unique() if "ticker_crypto_encoded" in X_test.columns else [])
+    print("Stock:", X_test["ticker_stock_encoded"].unique() if "ticker_stock_encoded" in X_test.columns else [])
 
     return X_train, X_val, X_test, y_train, y_val, y_test, {"crypto": crypto_encoder, "stock": stock_encoder}, tickers_test
 
