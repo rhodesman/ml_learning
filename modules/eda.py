@@ -113,21 +113,32 @@ def analyze_news_volume(df, query="Cryptocurrency"):
 
 def create_technical_indicators(df, price_col="price"):
     """
-    Create technical indicators for time-series data.
+    Add technical indicators to the DataFrame.
 
     Args:
-        df (pd.DataFrame): Input DataFrame with price column.
-        price_col (str): Column name for prices.
+        df (pd.DataFrame): The input DataFrame.
+        price_col (str): The base name of the column representing the price.
 
     Returns:
-        pd.DataFrame: DataFrame with additional technical indicators.
+        pd.DataFrame: The DataFrame with additional technical indicators.
     """
-    df["7_day_ma"] = df[price_col].rolling(window=7).mean()
-    df["14_day_ma"] = df[price_col].rolling(window=14).mean()
-    df["30_day_ma"] = df[price_col].rolling(window=30).mean()
-    df["7_day_std"] = df[price_col].rolling(window=7).std()
-    df["lag_1"] = df[price_col].shift(1)
-    df["lag_7"] = df[price_col].shift(7)
+    # Resolve the actual price column name
+    matching_columns = [col for col in df.columns if col.startswith(price_col)]
+    if not matching_columns:
+        raise KeyError(f"Column '{price_col}' not found in the DataFrame.")
+    resolved_price_col = matching_columns[0]
+
+    print(f"Resolved price column: {resolved_price_col}")  # Debugging print
+
+    # Add rolling averages and other technical indicators
+    df["7_day_ma"] = df[resolved_price_col].rolling(window=7).mean()
+    df["14_day_ma"] = df[resolved_price_col].rolling(window=14).mean()
+    df["30_day_ma"] = df[resolved_price_col].rolling(window=30).mean()
+    df["7_day_std"] = df[resolved_price_col].rolling(window=7).std()
+
+    # Add lag features
+    df["lag_1"] = df[resolved_price_col].shift(1)
+    df["lag_7"] = df[resolved_price_col].shift(7)
 
     return df
 
