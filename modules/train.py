@@ -38,6 +38,17 @@ def train_classifier(X_train, y_train, X_val, y_val):
     Returns:
         model: Trained model.
     """
+
+    # Debugging: Check for missing values
+    print("Missing values per column in training set:")
+    print(X_train.isna().sum())
+    print("Missing values per column in validation set:")
+    print(X_val.isna().sum())
+
+    # Preprocess features to handle missing values
+    X_train = preprocess_features(X_train)
+    X_val = preprocess_features(X_val)
+
     model = LogisticRegression(max_iter=1000, random_state=42)
     model.fit(X_train, y_train)
 
@@ -60,6 +71,23 @@ def evaluate_model(model, X_test, y_test):
     y_pred = model.predict(X_test)
     print("Test Set Performance:")
     print(classification_report(y_test, y_pred))
+
+from sklearn.impute import SimpleImputer
+
+def preprocess_features(X):
+    """
+    Preprocess feature matrix by imputing missing values.
+
+    Args:
+        X (pd.DataFrame): Feature matrix.
+
+    Returns:
+        pd.DataFrame: Preprocessed feature matrix.
+    """
+    # Impute missing values with the mean of each column
+    imputer = SimpleImputer(strategy="mean")
+    X_imputed = imputer.fit_transform(X)
+    return pd.DataFrame(X_imputed, columns=X.columns)
 
 if __name__ == "__main__":
     # Load processed data
