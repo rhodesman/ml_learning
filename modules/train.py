@@ -1,4 +1,5 @@
 from sklearn.model_selection import train_test_split
+import pandas as pd
 
 def split_data(df, target_col="price_change"):
     """
@@ -84,6 +85,12 @@ def preprocess_features(X):
     Returns:
         pd.DataFrame: Preprocessed feature matrix.
     """
+
+    # Drop columns with all NaN values
+    X = X.dropna(axis=1, how="all")
+
+    print("Shape of X after dropping all-NaN columns:", X.shape)
+
     # Impute missing values with the mean of each column
     imputer = SimpleImputer(strategy="mean")
     X_imputed = imputer.fit_transform(X)
