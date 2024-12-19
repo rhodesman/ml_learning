@@ -3,6 +3,7 @@ from modules.eda import clean_data, create_technical_indicators, add_price_chang
 from modules.train import split_data, train_classifier, evaluate_model, train_random_forest, train_xgboost, ensemble_predict
 from sklearn.metrics import classification_report, roc_auc_score
 import os
+import numpy as np
 import pandas as pd
 import json
 
