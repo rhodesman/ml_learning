@@ -1,6 +1,6 @@
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, accuracy_score
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestClassifier
@@ -89,7 +89,7 @@ def evaluate_model(model, X_test, y_test, feature_names):
 
 def train_random_forest(X_train, y_train, X_val, y_val):
     """
-    Train a Random Forest classifier.
+    Train a Random Forest classifier and evaluate it on the validation set.
 
     Args:
         X_train (pd.DataFrame): Training features.
@@ -98,15 +98,17 @@ def train_random_forest(X_train, y_train, X_val, y_val):
         y_val (pd.Series): Validation labels.
 
     Returns:
-        model: Trained Random Forest model.
+        RandomForestClassifier: The trained Random Forest model.
     """
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    print("Training Random Forest model...")
+    model = RandomForestClassifier(random_state=42, n_estimators=100)
     model.fit(X_train, y_train)
 
-    # Evaluate on validation set
-    y_pred = model.predict(X_val)
-    print("Validation Set Performance (Random Forest):")
-    print(classification_report(y_val, y_pred, zero_division=0))
+    # Evaluate the model on the validation set
+    y_val_pred = model.predict(X_val)
+    print("Validation Set Performance:")
+    print(classification_report(y_val, y_val_pred))
+    print("Validation Accuracy:", accuracy_score(y_val, y_val_pred))
 
     return model
 
