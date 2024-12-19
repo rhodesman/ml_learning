@@ -132,7 +132,6 @@ def train_xgboost(X_train, y_train, X_val, y_val):
     print("Training XGBoost model...")
     model = xgb.XGBClassifier(
         random_state=42,
-        use_label_encoder=False,
         eval_metric="logloss",
         n_estimators=100,
         learning_rate=0.1,
