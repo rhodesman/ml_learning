@@ -4,6 +4,10 @@ import pandas as pd
 from datetime import datetime, timedelta
 import yfinance as yf
 from pycoingecko import CoinGeckoAPI
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 cg = CoinGeckoAPI()
 
