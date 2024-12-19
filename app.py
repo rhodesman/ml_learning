@@ -80,8 +80,14 @@ def main():
     # Add labels for price change
     merged_data = add_price_change_label(merged_data)
 
+    print("\nColumns in merged_data before split_data:", merged_data.columns)
+
     # Split data into training, validation, and test sets
     X_train, X_val, X_test, y_train, y_val, y_test, encoders, tickers_test = split_data(merged_data, target_col="price_change")
+    
+    print("\nColumns in X_test after split_data:", X_test.columns)
+    if "ticker_crypto_encoded" not in X_test.columns and "ticker_stock_encoded" not in X_test.columns:
+        print("Error: Encoded ticker columns are missing after split_data.")
 
     # Check for non-numeric columns in X_train and X_val
     if not all(np.issubdtype(dtype, np.number) for dtype in X_train.dtypes):
@@ -126,7 +132,7 @@ def main():
     print(f"Ensemble AUC-ROC: {auc}")
 
     print("\nTickers in test set:")
-    print(X_test["ticker"].value_counts())
+    # print(X_test["ticker"].value_counts())
     # Generate and display final prediction output
     # Predict on the test set
     ensemble_pred = ensemble_predict(rf_model, xgb_model, X_test)

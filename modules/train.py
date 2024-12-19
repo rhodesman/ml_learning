@@ -47,9 +47,11 @@ def split_data(df, target_col):
     _, tickers_temp = train_test_split(tickers, test_size=0.3, random_state=42)
     tickers_val, tickers_test = train_test_split(tickers_temp, test_size=0.5, random_state=42)
 
-    print("Columns in X_train:", X_train.columns)
-    print("Columns in X_val:", X_val.columns)
-    print("Columns in X_test:", X_test.columns)
+    print("\nColumns in features before splitting:", features.columns)
+    print("\nColumns in features after splitting:")
+    print("Train set:", X_train.columns)
+    print("Validation set:", X_val.columns)
+    print("Test set:", X_test.columns)
 
     print(f"Shape of train set: {X_train.shape}")
     print(f"Shape of validation set: {X_val.shape}")
