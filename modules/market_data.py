@@ -9,7 +9,7 @@ import yfinance as yf
 load_dotenv()
 
 
-def fetch_crypto_data_coingecko(coin_id="bitcoin", vs_currency="usd", days=30):
+def fetch_crypto_data_coingecko(coin_id="bitcoin", vs_currency="usd", days=365):
     url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart"
     params = {
         "vs_currency": vs_currency,

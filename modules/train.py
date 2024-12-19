@@ -26,6 +26,8 @@ def split_data(df, target_col="price_change"):
 
     return X_train, X_val, X_test, y_train, y_val, y_test
 
+from sklearn.model_selection import cross_val_score
+
 def train_classifier(X_train, y_train, X_val, y_val):
     """
     Train a binary classification model and evaluate it.
@@ -45,7 +47,15 @@ def train_classifier(X_train, y_train, X_val, y_val):
     # Preprocess validation data with the same features
     X_val, _ = preprocess_features(X_val, feature_names=feature_names)
 
-    model = LogisticRegression(max_iter=1000, random_state=42)
+    # Use class balancing
+    model = LogisticRegression(max_iter=1000, random_state=42, class_weight="balanced")
+
+    # Cross-validation
+    scores = cross_val_score(model, X_train, y_train, cv=5, scoring="accuracy")
+    print("Cross-Validation Scores:", scores)
+    print("Mean Accuracy:", scores.mean())
+
+    # Train final model
     model.fit(X_train, y_train)
 
     # Evaluate on validation set
@@ -84,8 +94,8 @@ def preprocess_features(X, feature_names=None):
     Returns:
         pd.DataFrame, list: Preprocessed feature matrix and list of feature names.
     """
-    print("Feature names used for training:")
-    print(feature_names)
+    #print("Feature names used for training:")
+    #print(feature_names)
 
     # Drop columns with all NaN values
     X = X.dropna(axis=1, how="all")
@@ -104,7 +114,7 @@ def preprocess_features(X, feature_names=None):
             X_processed[f] = 0  # Add missing features as zeros
         X_processed = X_processed[feature_names]
 
-    print("Feature names after preprocessing:", X.columns.tolist())
+    #print("Feature names after preprocessing:", X.columns.tolist())
     return X_processed, X.columns.tolist()
 
 if __name__ == "__main__":
