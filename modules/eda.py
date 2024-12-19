@@ -2,6 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
+# Define the base directory of the application
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # One level up from 'modules'
 
 def load_data(file_path):
     """
@@ -13,9 +15,10 @@ def load_data(file_path):
     Returns:
         pd.DataFrame: Loaded DataFrame.
     """
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"File not found: {file_path}")
-    return pd.read_csv(file_path)
+    full_path = os.path.join(BASE_DIR, file_path)  # Construct full path
+    if not os.path.exists(full_path):
+        raise FileNotFoundError(f"File not found: {full_path}")
+    return pd.read_csv(full_path)
 
 
 def clean_data(df, required_columns):
