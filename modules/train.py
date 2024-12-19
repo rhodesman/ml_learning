@@ -19,15 +19,19 @@ def split_data(df, target_col):
         Tuple of DataFrames: X_train, X_val, X_test, y_train, y_val, y_test
     """
     # Dynamically drop columns that exist in the DataFrame
-    drop_columns = [col for col in ["time", "date", target_col] if col in df.columns]
+    drop_columns = [col for col in ["time", "date", target_col, "ticker"] if col in df.columns]
     print(f"Dropping columns: {drop_columns}")  # Debugging print
 
     # Features and target
     features = df.drop(columns=drop_columns)  # Drop non-numeric columns
     target = df[target_col]
 
+    # Remove non-numeric columns from features
+    numeric_features = features.select_dtypes(include=["number"])
+    print(f"Numeric features retained: {numeric_features.columns}")  # Debugging print
+
     # Train-validation-test split
-    X_train, X_temp, y_train, y_temp = train_test_split(features, target, test_size=0.4, random_state=42)
+    X_train, X_temp, y_train, y_temp = train_test_split(numeric_features, target, test_size=0.4, random_state=42)
     X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 
     return X_train, X_val, X_test, y_train, y_val, y_test
