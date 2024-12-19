@@ -42,20 +42,35 @@ def fetch_stock_data(ticker="AAPL", days=30):
     return df
 
 
-def fetch_news_data(query="cryptocurrency", days=30):
+def fetch_news_data(query="cryptocurrency", days=29):
+    """
+    Fetch news articles using NewsAPI.
+
+    Args:
+        query (str): Search query for news articles.
+        days (int): Number of days to fetch articles for.
+
+    Returns:
+        pd.DataFrame: A DataFrame with news data.
+    """
     api_key = os.getenv("NEWSAPI_KEY")
     if not api_key:
         raise ValueError("Missing NewsAPI key. Please add it to your .env file.")
 
+    # Define the date range
     end_date = datetime.now().date()
     start_date = end_date - timedelta(days=days)
+
+    print(f"Requesting news from {start_date.isoformat()} to {end_date.isoformat()}")  # Debug
+
+    # NewsAPI endpoint and parameters
     url = "https://newsapi.org/v2/everything"
     params = {
         "q": query,
         "from": start_date.isoformat(),
         "to": end_date.isoformat(),
         "sortBy": "publishedAt",
-        "pageSize": 100,
+        "pageSize": 100,  # Maximum articles per request
         "apiKey": api_key,
     }
 
@@ -101,5 +116,5 @@ def collect_stock_data():
 def collect_news_data():
     queries = ["cryptocurrency", "stock market", "technology"]
     for query in queries:
-        df = fetch_news_data(query=query, days=30)
+        df = fetch_news_data(query=query, days=29)
         save_to_csv(df, f"data/raw/{query.replace(' ', '_')}_news_data.csv")
