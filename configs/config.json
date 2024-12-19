@@ -1,7 +1,7 @@
 {
     "lookback_days": 365,
     "stocks": ["AAPL", "TSLA", "MSFT"],
-    "cryptos": ["bitcoin", "ethereum", "dogecoin"],  // CoinGecko IDs
+    "cryptos": ["bitcoin", "ethereum", "dogecoin"],  // <- Use double quotes
     "news_query": "cryptocurrency",
-    "granularity": "daily"  // CoinGecko granularity is implicit by 'days'
-}
+    "granularity": "daily"
+  }
