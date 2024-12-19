@@ -156,11 +156,17 @@ def merge_datasets(crypto_df, stock_df, news_df):
     # Merge crypto and stock data on "time"
     combined = pd.merge(crypto_df, stock_df, on="time", how="inner")
 
-    # Convert news_df 'date' column to datetime to match the combined dataset
-    news_df["date"] = pd.to_datetime(news_df["date"])
-
     # Add a 'date' column to the combined dataset for merging with news_df
     combined["date"] = combined["time"].dt.date
+
+    # Ensure news_df 'date' column is datetime
+    news_df["date"] = pd.to_datetime(news_df["date"]).dt.date
+
+    # Debug: Check types before merging
+    print("Combined DataFrame types before merge:")
+    print(combined.dtypes)
+    print("News DataFrame types before merge:")
+    print(news_df.dtypes)
 
     # Merge with news data
     combined = pd.merge(combined, news_df, on="date", how="left")
