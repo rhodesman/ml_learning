@@ -137,15 +137,13 @@ def main():
     if "ticker_stock_encoded" in X_test.columns:
         X_test["stock_ticker"] = encoders["stock"].inverse_transform(X_test["ticker_stock_encoded"])
 
-    # Use tickers_test to map predictions back to original tickers
-    if "ticker_crypto" in tickers_test.columns:
-        X_test["ticker_crypto"] = tickers_test["ticker_crypto"]
-    if "ticker_stock" in tickers_test.columns:
-        X_test["ticker_stock"] = tickers_test["ticker_stock"]
+    # Debugging: Check if encoded tickers were decoded successfully
+    print("Crypto tickers in X_test after decoding:", X_test.get("crypto_ticker", "Not present").unique())
+    print("Stock tickers in X_test after decoding:", X_test.get("stock_ticker", "Not present").unique())
 
     # Combine crypto and stock tickers into a unified "ticker" column
     if "crypto_ticker" in X_test.columns or "stock_ticker" in X_test.columns:
-        X_test["ticker"] = X_test["crypto_ticker"].combine_first(X_test["stock_ticker"])
+        X_test["ticker"] = X_test.get("crypto_ticker").combine_first(X_test.get("stock_ticker"))
         print("\nTickers in test set:")
         print(X_test["ticker"].value_counts())
     else:
@@ -157,10 +155,10 @@ def main():
 
     # Display predictions grouped by tickers
     print("\nPrediction Results:")
-    if "ticker_crypto" in X_test.columns:
-        print(X_test[["ticker_crypto", "prediction_label"]].value_counts())
-    if "ticker_stock" in X_test.columns:
-        print(X_test[["ticker_stock", "prediction_label"]].value_counts())
+    if "crypto_ticker" in X_test.columns:
+        print(X_test[["crypto_ticker", "prediction_label"]].value_counts())
+    if "stock_ticker" in X_test.columns:
+        print(X_test[["stock_ticker", "prediction_label"]].value_counts())
 
     # Optionally, save the predictions to a file
     prediction_output_path = "data/processed/prediction_results.csv"
