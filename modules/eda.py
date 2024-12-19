@@ -149,16 +149,20 @@ def merge_datasets(crypto_df, stock_df, news_df):
     Returns:
         pd.DataFrame: Combined DataFrame for model input.
     """
-    # Ensure time columns are aligned
+    # Ensure time columns are datetime
     crypto_df["time"] = pd.to_datetime(crypto_df["time"])
     stock_df["time"] = pd.to_datetime(stock_df["time"])
-    news_df["date"] = pd.to_datetime(news_df["date"])
 
     # Merge crypto and stock data on "time"
     combined = pd.merge(crypto_df, stock_df, on="time", how="inner")
 
-    # Merge news data on "date"
+    # Convert news_df 'date' column to datetime to match the combined dataset
+    news_df["date"] = pd.to_datetime(news_df["date"])
+
+    # Add a 'date' column to the combined dataset for merging with news_df
     combined["date"] = combined["time"].dt.date
+
+    # Merge with news data
     combined = pd.merge(combined, news_df, on="date", how="left")
 
     # Fill missing news counts with 0
