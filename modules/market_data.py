@@ -54,7 +54,7 @@ def fetch_stock_data(ticker, days):
     df.reset_index(inplace=True)
 
     # Debugging print for raw column names before any changes
-    print(f"Columns in {ticker} data before cleaning:", df.columns)
+    print(f"Columns in {ticker} data before cleaning: {df.columns}")
 
     # Flatten MultiIndex columns if necessary
     if isinstance(df.columns, pd.MultiIndex):
@@ -62,15 +62,19 @@ def fetch_stock_data(ticker, days):
 
     # Rename columns for consistency
     df.rename(
-        columns={"Date": "time", "Adj Close": "adj_close", "Volume": "volume"},
+        columns={
+            f"Date_": "time",
+            f"Adj Close_{ticker}": "adj_close",
+            f"Volume_{ticker}": "volume"
+        },
         inplace=True,
     )
 
+    # Debugging print for column names after renaming
+    print(f"Columns in {ticker} data after renaming: {df.columns}")
+
     # Add a ticker column for identification in combined datasets
     df["ticker"] = ticker
-
-    # Debugging print for column names
-    print(f"Columns in {ticker} data after renaming:", df.columns)
 
     return df
 
