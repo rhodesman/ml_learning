@@ -131,15 +131,21 @@ def main():
     # Predict on the test set
     ensemble_pred = ensemble_predict(rf_model, xgb_model, X_test)
 
+    # Debugging: Print available columns
+    print("Columns in X_test before mapping tickers:", X_test.columns)
+
     # Map predictions back to stock/crypto names
     if "ticker_crypto_encoded" in X_test.columns:
         X_test["crypto_ticker"] = encoders["crypto"].inverse_transform(X_test["ticker_crypto_encoded"])
+        print("Decoded crypto tickers in X_test:", X_test["crypto_ticker"].unique())
+    else:
+        print("Warning: 'ticker_crypto_encoded' not found in X_test.")
+
     if "ticker_stock_encoded" in X_test.columns:
         X_test["stock_ticker"] = encoders["stock"].inverse_transform(X_test["ticker_stock_encoded"])
-
-    # Debugging: Check if encoded tickers were decoded successfully
-    print("Crypto tickers in X_test after decoding:", X_test.get("crypto_ticker", "Not present").unique())
-    print("Stock tickers in X_test after decoding:", X_test.get("stock_ticker", "Not present").unique())
+        print("Decoded stock tickers in X_test:", X_test["stock_ticker"].unique())
+    else:
+        print("Warning: 'ticker_stock_encoded' not found in X_test.")
 
     # Combine crypto and stock tickers into a unified "ticker" column
     if "crypto_ticker" in X_test.columns or "stock_ticker" in X_test.columns:
@@ -155,10 +161,10 @@ def main():
 
     # Display predictions grouped by tickers
     print("\nPrediction Results:")
-    if "crypto_ticker" in X_test.columns:
-        print(X_test[["crypto_ticker", "prediction_label"]].value_counts())
-    if "stock_ticker" in X_test.columns:
-        print(X_test[["stock_ticker", "prediction_label"]].value_counts())
+    if "ticker" in X_test.columns:
+        print(X_test[["ticker", "prediction_label"]].value_counts())
+    else:
+        print("Warning: 'ticker' column is missing. Unable to group predictions by ticker.")
 
     # Optionally, save the predictions to a file
     prediction_output_path = "data/processed/prediction_results.csv"
