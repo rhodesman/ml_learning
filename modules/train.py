@@ -229,8 +229,8 @@ if __name__ == "__main__":
     # Add price change labels
     merged_data = add_price_change_label(merged_data)
 
-    # Split data into training, validation, and test sets
-    X_train, X_val, X_test, y_train, y_val, y_test = split_data(merged_data, target_col="price_change")
+    # Split the data into training, validation, and test sets
+    X_train, X_val, X_test, y_train, y_val, y_test, encoders = split_data(merged_data, target_col="price_change")
 
     # Train the classifier
     model = train_classifier(X_train, y_train, X_val, y_val)
