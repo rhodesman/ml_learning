@@ -37,18 +37,13 @@ def train_classifier(X_train, y_train, X_val, y_val):
         y_val (pd.Series): Validation labels.
 
     Returns:
-        model: Trained model.
+        model, list: Trained model and list of feature names.
     """
+    # Preprocess training data and save feature names
+    X_train, feature_names = preprocess_features(X_train)
 
-    # Debugging: Check for missing values
-    print("Missing values per column in training set:")
-    print(X_train.isna().sum())
-    print("Missing values per column in validation set:")
-    print(X_val.isna().sum())
-
-    # Preprocess features to handle missing values
-    X_train = preprocess_features(X_train)
-    X_val = preprocess_features(X_val)
+    # Preprocess validation data with the same features
+    X_val, _ = preprocess_features(X_val, feature_names=feature_names)
 
     model = LogisticRegression(max_iter=1000, random_state=42)
     model.fit(X_train, y_train)
@@ -56,11 +51,11 @@ def train_classifier(X_train, y_train, X_val, y_val):
     # Evaluate on validation set
     y_pred = model.predict(X_val)
     print("Validation Set Performance:")
-    print(classification_report(y_val, y_pred))
+    print(classification_report(y_val, y_pred, zero_division=0))
 
-    return model
+    return model, feature_names
 
-def evaluate_model(model, X_test, y_test):
+def evaluate_model(model, X_test, y_test, feature_names):
     """
     Evaluate the model on the test set.
 
@@ -68,33 +63,49 @@ def evaluate_model(model, X_test, y_test):
         model: Trained model.
         X_test (pd.DataFrame): Test features.
         y_test (pd.Series): Test labels.
+        feature_names (list): List of feature names used during training.
     """
+    # Preprocess test data with training feature names
+    X_test, _ = preprocess_features(X_test, feature_names=feature_names)
+
+    # Make predictions
     y_pred = model.predict(X_test)
     print("Test Set Performance:")
-    print(classification_report(y_test, y_pred))
+    print(classification_report(y_test, y_pred, zero_division=0))
 
-from sklearn.impute import SimpleImputer
-
-def preprocess_features(X):
+def preprocess_features(X, feature_names=None):
     """
-    Preprocess feature matrix by imputing missing values.
+    Preprocess feature matrix by imputing missing values and ensuring consistent features.
 
     Args:
         X (pd.DataFrame): Feature matrix.
+        feature_names (list or None): Optional list of feature names to ensure consistency.
 
     Returns:
-        pd.DataFrame: Preprocessed feature matrix.
+        pd.DataFrame, list: Preprocessed feature matrix and list of feature names.
     """
+    print("Feature names used for training:")
+    print(feature_names)
 
     # Drop columns with all NaN values
     X = X.dropna(axis=1, how="all")
 
-    print("Shape of X after dropping all-NaN columns:", X.shape)
-
     # Impute missing values with the mean of each column
     imputer = SimpleImputer(strategy="mean")
     X_imputed = imputer.fit_transform(X)
-    return pd.DataFrame(X_imputed, columns=X.columns)
+
+    # Convert back to DataFrame
+    X_processed = pd.DataFrame(X_imputed, columns=X.columns)
+
+    # If feature_names is provided, enforce consistent columns
+    if feature_names:
+        missing_features = [f for f in feature_names if f not in X_processed.columns]
+        for f in missing_features:
+            X_processed[f] = 0  # Add missing features as zeros
+        X_processed = X_processed[feature_names]
+
+    print("Feature names after preprocessing:", X.columns.tolist())
+    return X_processed, X.columns.tolist()
 
 if __name__ == "__main__":
     # Load processed data

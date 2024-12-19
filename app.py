@@ -46,11 +46,19 @@ def main():
     merged_data.to_csv(MERGED_FILE, index=False)
     print(f"Merged data saved to {MERGED_FILE}")
 
-    # Step 3: Model Training
+   # Step 3: Model Training
     print("Training model...")
     merged_data = add_price_change_label(merged_data)
+
+    # Split data into training, validation, and test sets
     X_train, X_val, X_test, y_train, y_val, y_test = split_data(merged_data, target_col="price_change")
-    model = train_classifier(X_train, y_train, X_val, y_val)
+
+    # Train the classifier and capture the feature names
+    model, feature_names = train_classifier(X_train, y_train, X_val, y_val)
+
+    # Step 4: Model Evaluation
+    print("Evaluating model...")
+    evaluate_model(model, X_test, y_test, feature_names)
 
     # Step 4: Model Evaluation
     print("Evaluating model...")
