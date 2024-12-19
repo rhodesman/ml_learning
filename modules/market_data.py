@@ -95,13 +95,14 @@ def add_technical_indicators(df):
     Returns:
         pd.DataFrame: Dataset with additional technical indicators.
     """
-    # Check if columns are MultiIndex and flatten if necessary
+    # Handle MultiIndex columns for stock data
     if isinstance(df.columns, pd.MultiIndex):
+        print("Detected MultiIndex columns. Flattening...")
         df.columns = ['_'.join(col).strip() for col in df.columns.values]
 
-    # Ensure a valid price column exists
+    # Determine the price column
     price_column = None
-    for col in ['price', 'Close', 'Adj Close']:
+    for col in ['price', 'Close_AAPL', 'adj_close_AAPL', 'Close', 'adj_close']:
         if col in df.columns:
             price_column = col
             break
@@ -110,6 +111,7 @@ def add_technical_indicators(df):
         raise KeyError("No valid price column found in the dataset.")
 
     # Add technical indicators
+    print(f"Using price column: {price_column}")
     df["rsi"] = ta.momentum.RSIIndicator(df[price_column]).rsi()
     df["macd"] = ta.trend.MACD(df[price_column]).macd()
     bollinger = ta.volatility.BollingerBands(df[price_column])
@@ -153,6 +155,11 @@ def collect_crypto_data(crypto_ids, days):
         df = fetch_crypto_data_coingecko(crypto, days)
         print("Columns in DataFrame:", df.columns)
         df = add_technical_indicators(df)
+
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = ['_'.join(col).strip() for col in df.columns.values]
+            print("Flattened Columns:", df.columns)
+
         filename = f"data/raw/{crypto}_data.csv"
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         df.to_csv(filename, index=False)
@@ -173,6 +180,11 @@ def collect_stock_data(stocks, days):
         df = fetch_stock_data(ticker=stock, days=days)
         print("Columns in DataFrame:", df.columns)
         df = add_technical_indicators(df)
+
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = ['_'.join(col).strip() for col in df.columns.values]
+            print("Flattened Columns:", df.columns)
+
         filename = f"data/raw/{stock}_stock_data.csv"
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         df.to_csv(filename, index=False)
