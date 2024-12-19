@@ -95,9 +95,9 @@ def add_technical_indicators(df):
     Returns:
         pd.DataFrame: Dataset with additional technical indicators.
     """
-    df["rsi"] = ta.momentum.RSIIndicator(df["price"]).rsi()
-    df["macd"] = ta.trend.MACD(df["price"]).macd()
-    bollinger = ta.volatility.BollingerBands(df["price"])
+    df["rsi"] = ta.momentum.RSIIndicator(df["Price"]).rsi()
+    df["macd"] = ta.trend.MACD(df["Price"]).macd()
+    bollinger = ta.volatility.BollingerBands(df["Price"])
     df["bollinger_hband"] = bollinger.bollinger_hband()
     df["bollinger_lband"] = bollinger.bollinger_lband()
     return df
