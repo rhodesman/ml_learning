@@ -40,55 +40,48 @@ def fetch_stock_data(ticker="AAPL", days=30):
     return df
 
 
-def fetch_news_data(query="cryptocurrency", days=29):
+def fetch_news_data(query, days):
     """
-    Fetch news articles using NewsAPI.
+    Fetch news data using Bing News Search API.
 
     Args:
-        query (str): Search query for news articles.
-        days (int): Number of days to fetch articles for.
+        query (str): The search query for news articles.
+        days (int): Number of days to look back.
 
     Returns:
-        pd.DataFrame: A DataFrame with news data.
+        pd.DataFrame: News articles with publication dates and titles.
     """
-    api_key = os.getenv("NEWSAPI_KEY")
+    api_key = os.getenv("BING_API_KEY")
     if not api_key:
-        raise ValueError("Missing NewsAPI key. Please add it to your .env file.")
+        raise ValueError("Missing Bing API key. Please add it to your .env file.")
 
-    # Define the date range
-    end_date = datetime.now().date()
-    start_date = end_date - timedelta(days=days)
-
-    print(f"Requesting news from {start_date.isoformat()} to {end_date.isoformat()}")  # Debug
-
-    # NewsAPI endpoint and parameters
-    url = "https://newsapi.org/v2/everything"
+    url = "https://api.bing.microsoft.com/v7.0/news/search"
+    headers = {"Ocp-Apim-Subscription-Key": api_key}
     params = {
         "q": query,
-        "from": start_date.isoformat(),
-        "to": end_date.isoformat(),
-        "sortBy": "publishedAt",
-        "pageSize": 100,  # Maximum articles per request
-        "apiKey": api_key,
+        "freshness": "Week",  # Adjust freshness as needed: Day, Week, or Month
+        "count": 100,         # Number of articles to return
+        "sortBy": "Date"      # Sort by most recent
     }
 
-    response = requests.get(url, params=params)
+    response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         raise ValueError(f"Error fetching news data: {response.status_code} - {response.text}")
 
-    articles = response.json().get("articles", [])
+    articles = response.json().get("value", [])
     data = [
         {
-            "publishedAt": article["publishedAt"],
-            "title": article["title"],
-            "description": article["description"],
+            "title": article["name"],
+            "description": article.get("description", ""),
             "url": article["url"],
-            "source": article["source"]["name"],
+            "publishedAt": article["datePublished"]
         }
         for article in articles
     ]
 
-    return pd.DataFrame(data)
+    df = pd.DataFrame(data)
+    df["publishedAt"] = pd.to_datetime(df["publishedAt"], errors="coerce")
+    return df
 
 
 def save_to_csv(dataframe, filepath):
