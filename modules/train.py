@@ -18,7 +18,7 @@ def split_data(df, target_col):
         target_col (str): The target column for prediction.
 
     Returns:
-        tuple: Split datasets (X_train, X_val, X_test, y_train, y_val, y_test, encoders, tickers).
+        tuple: Split datasets (X_train, X_val, X_test, y_train, y_val, y_test, encoders, tickers_test).
     """
     print("Dropping columns:", [target_col, "time", "date"])
 
@@ -26,48 +26,44 @@ def split_data(df, target_col):
     crypto_encoder = LabelEncoder()
     stock_encoder = LabelEncoder()
 
-    if "ticker_crypto_encoded" in features.columns:
-        print("\nCrypto tickers in train set:", features.loc[X_train.index, "ticker_crypto_encoded"].unique())
-        print("Crypto tickers in validation set:", features.loc[X_val.index, "ticker_crypto_encoded"].unique())
-        print("Crypto tickers in test set:", features.loc[X_test.index, "ticker_crypto_encoded"].unique())
-
-    if "ticker_stock_encoded" in features.columns:
-        print("\nStock tickers in train set:", features.loc[X_train.index, "ticker_stock_encoded"].unique())
-        print("Stock tickers in validation set:", features.loc[X_val.index, "ticker_stock_encoded"].unique())
-        print("Stock tickers in test set:", features.loc[X_test.index, "ticker_stock_encoded"].unique())
-
     # Encode ticker columns
     if "ticker_crypto" in df.columns:
         df["ticker_crypto_encoded"] = crypto_encoder.fit_transform(df["ticker_crypto"])
+    else:
+        print("Warning: 'ticker_crypto' column not found in dataset.")
+        df["ticker_crypto_encoded"] = None
+
     if "ticker_stock" in df.columns:
         df["ticker_stock_encoded"] = stock_encoder.fit_transform(df["ticker_stock"])
-
-    # Retain ticker columns for mapping back to test predictions
-    tickers = df[["ticker_crypto", "ticker_stock"]].copy()
+    else:
+        print("Warning: 'ticker_stock' column not found in dataset.")
+        df["ticker_stock_encoded"] = None
 
     # Features and target
-    features = df.drop(columns=[target_col, "time", "date", "ticker_crypto", "ticker_stock"], errors="ignore").copy()
-    target = df[target_col]
+    try:
+        features = df.drop(columns=[target_col, "time", "date", "ticker_crypto", "ticker_stock"], errors="ignore").copy()
+    except KeyError as e:
+        print(f"Error dropping columns: {e}")
+        features = df.copy()  # Use the entire dataset if specific columns are missing
+
+    target = df[target_col] if target_col in df.columns else None
+    if target is None:
+        raise KeyError(f"Target column '{target_col}' not found in dataset.")
 
     # Split the data into training, validation, and test sets
     X_train, X_temp, y_train, y_temp = train_test_split(features, target, test_size=0.3, random_state=42)
     X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 
-    # Split tickers
-    _, tickers_temp = train_test_split(tickers, test_size=0.3, random_state=42)
-    tickers_val, tickers_test = train_test_split(tickers_temp, test_size=0.5, random_state=42)
+    print("Columns in X_train:", X_train.columns)
+    print("Columns in X_val:", X_val.columns)
+    print("Columns in X_test:", X_test.columns)
 
-    print("\nUnique tickers in train set:")
-    print("Crypto:", X_train["ticker_crypto_encoded"].unique() if "ticker_crypto_encoded" in X_train.columns else [])
-    print("Stock:", X_train["ticker_stock_encoded"].unique() if "ticker_stock_encoded" in X_train.columns else [])
+    print(f"Shape of X_train: {X_train.shape}")
+    print(f"Shape of X_val: {X_val.shape}")
+    print(f"Shape of X_test: {X_test.shape}")
 
-    print("\nUnique tickers in validation set:")
-    print("Crypto:", X_val["ticker_crypto_encoded"].unique() if "ticker_crypto_encoded" in X_val.columns else [])
-    print("Stock:", X_val["ticker_stock_encoded"].unique() if "ticker_stock_encoded" in X_val.columns else [])
-
-    print("\nUnique tickers in test set:")
-    print("Crypto:", X_test["ticker_crypto_encoded"].unique() if "ticker_crypto_encoded" in X_test.columns else [])
-    print("Stock:", X_test["ticker_stock_encoded"].unique() if "ticker_stock_encoded" in X_test.columns else [])
+    # Capture ticker information for test set
+    tickers_test = df.loc[X_test.index, ["ticker_crypto_encoded", "ticker_stock_encoded"]]
 
     return X_train, X_val, X_test, y_train, y_val, y_test, {"crypto": crypto_encoder, "stock": stock_encoder}, tickers_test
 
