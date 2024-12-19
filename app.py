@@ -80,7 +80,7 @@ def main():
     merged_data = add_price_change_label(merged_data)
 
     # Split data into training, validation, and test sets
-    X_train, X_val, X_test, y_train, y_val, y_test = split_data(merged_data, target_col="price_change")
+    X_train, X_val, X_test, y_train, y_val, y_test, encoders = split_data(merged_data, target_col="price_change")
 
     # Train Random Forest
     print("Training Random Forest model...")
