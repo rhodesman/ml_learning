@@ -7,24 +7,27 @@ from sklearn.ensemble import RandomForestClassifier
 import xgboost as xgb
 import pandas as pd
 
-def split_data(df, target_col="price_change"):
+def split_data(df, target_col):
     """
     Split the dataset into training, validation, and test sets.
 
     Args:
-        df (pd.DataFrame): Input DataFrame.
-        target_col (str): Column name for the target variable.
+        df (pd.DataFrame): The input DataFrame.
+        target_col (str): The name of the target column.
 
     Returns:
-        tuple: Training, validation, and test sets (features and labels).
+        Tuple of DataFrames: X_train, X_val, X_test, y_train, y_val, y_test
     """
-    features = df.drop(columns=[target_col, "time", "date"])  # Drop non-numeric columns
+    # Dynamically drop columns that exist in the DataFrame
+    drop_columns = [col for col in ["time", "date", target_col] if col in df.columns]
+    print(f"Dropping columns: {drop_columns}")  # Debugging print
+
+    # Features and target
+    features = df.drop(columns=drop_columns)  # Drop non-numeric columns
     target = df[target_col]
 
-    # Split into training + validation (80%) and test (20%)
-    X_train, X_temp, y_train, y_temp = train_test_split(features, target, test_size=0.2, random_state=42)
-
-    # Split the temp set into validation (50% of temp) and test (50% of temp)
+    # Train-validation-test split
+    X_train, X_temp, y_train, y_temp = train_test_split(features, target, test_size=0.4, random_state=42)
     X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 
     return X_train, X_val, X_test, y_train, y_val, y_test
