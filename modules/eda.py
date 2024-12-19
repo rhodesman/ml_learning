@@ -166,30 +166,18 @@ def merge_datasets(crypto_df, stock_df, news_df):
         news_df (pd.DataFrame): News data.
 
     Returns:
-        pd.DataFrame: Merged dataset.
+        pd.DataFrame: Merged dataset with ticker information.
     """
     # Resolve the time column in stock_df
-    time_column = None
-    for col in stock_df.columns:
-        if "time" in col.lower():
-            time_column = col
-            break
-
+    time_column = next((col for col in stock_df.columns if "time" in col.lower()), None)
     if not time_column:
         raise KeyError("No time column found in the stock dataset.")
-
     print(f"Resolved time column in stock data: {time_column}")  # Debugging print
 
     # Resolve the time column in news_df
-    news_time_column = None
-    for col in news_df.columns:
-        if "time" in col.lower() or "date" in col.lower():
-            news_time_column = col
-            break
-
+    news_time_column = next((col for col in news_df.columns if "time" in col.lower() or "date" in col.lower()), None)
     if not news_time_column:
         raise KeyError("No time or date column found in the news dataset.")
-
     print(f"Resolved time column in news data: {news_time_column}")  # Debugging print
 
     # Rename columns for consistency
@@ -201,9 +189,21 @@ def merge_datasets(crypto_df, stock_df, news_df):
     stock_df["time"] = pd.to_datetime(stock_df["time"])
     news_df["time"] = pd.to_datetime(news_df["time"])
 
+    # Add 'ticker' column to stock_df if missing
+    if "ticker" not in stock_df.columns:
+        stock_df["ticker"] = "stock"  # Placeholder if no ticker provided
+
+    # Add 'ticker' column to crypto_df
+    if "ticker" not in crypto_df.columns:
+        crypto_df["ticker"] = "crypto"  # Placeholder if no ticker provided
+
     # Merge datasets
-    merged = pd.merge(crypto_df, stock_df, on="time", how="inner")
+    merged = pd.merge(crypto_df, stock_df, on="time", how="inner", suffixes=("_crypto", "_stock"))
     merged = pd.merge(merged, news_df, on="time", how="left")
+
+    # Debugging merged dataset
+    print("Merged dataset columns:", merged.columns)
+    print("Number of rows in merged dataset:", len(merged))
 
     return merged
 

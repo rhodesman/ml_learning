@@ -109,6 +109,8 @@ def main():
     auc = roc_auc_score(y_test, ensemble_pred_proba)
     print(f"Ensemble AUC-ROC: {auc}")
 
+    print("\nTickers in test set:")
+    print(X_test["ticker"].value_counts())
     # Generate and display final prediction output
     # Predict on the test set
     ensemble_pred = ensemble_predict(rf_model, xgb_model, X_test)

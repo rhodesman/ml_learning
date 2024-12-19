@@ -24,7 +24,11 @@ def split_data(df, target_col):
     print(f"Dropping columns: {drop_columns}")  # Debugging print
 
     # Features and target
-    features = df.drop(columns=drop_columns)  # Drop non-numeric columns
+    features = df.drop(columns=[target_col, "time", "date"], errors="ignore")  # Drop non-numeric columns
+    if "ticker" in df.columns:
+        features["ticker"] = df["ticker"]  # Retain ticker for tracking
+    else:
+        print("Warning: Ticker column not found in the dataset!")  # Debugging message
     target = df[target_col]
 
     # Remove non-numeric columns from features
