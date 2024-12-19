@@ -25,7 +25,7 @@ def main():
     #print("Collecting data...")
     collect_crypto_data(config["cryptos"], config["lookback_days"])
     collect_stock_data(config["stocks"], config["lookback_days"])
-    collect_news_data()
+    collect_news_data(config["news_query"], config["lookback_days"])
 
     # Step 2: Data Cleaning and Feature Engineering
     #print("Processing data...")

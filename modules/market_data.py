@@ -126,8 +126,17 @@ def collect_stock_data(stocks, days):
         print(f"Data saved to {filename}")
 
 
-def collect_news_data():
-    queries = ["cryptocurrency", "stock market", "technology"]
-    for query in queries:
-        df_news = fetch_news_data(query=config["news_query"], days=config["lookback_days"])
-        save_to_csv(df_news, "data/raw/news_data.csv")
+def collect_news_data(query, days):
+    """
+    Collect and save news data.
+
+    Args:
+        query (str): The search query for news articles.
+        days (int): Number of days to look back.
+    """
+    print(f"Fetching news data for query: {query} over {days} days...")
+    df_news = fetch_news_data(query=query, days=days)
+    filename = "data/raw/news_data.csv"
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    df_news.to_csv(filename, index=False)
+    print(f"Data saved to {filename}")
