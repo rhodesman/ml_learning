@@ -2,6 +2,7 @@ import yfinance as yf
 import ccxt
 import pandas as pd
 from datetime import datetime, timedelta
+from pycoingecko import CoinGeckoAPI
 
 def map_granularity(asset_type, granularity):
     """
@@ -56,25 +57,56 @@ def fetch_stock_data(ticker, lookback_days, granularity):
 
 def fetch_crypto_data(crypto_name, lookback_days, granularity):
     """
-    Fetch historical cryptocurrency data.
+    Fetch historical cryptocurrency data using CoinGeckoAPI.
+    
+    Args:
+        crypto_name (str): Name of the cryptocurrency (e.g., 'bitcoin').
+        lookback_days (int): Number of days to look back for historical data.
+        granularity (str): Data granularity ('daily' or 'hourly').
+
+    Returns:
+        pd.DataFrame: A DataFrame with time, price, and volume data.
     """
+    cg = CoinGeckoAPI()
     try:
         # Map granularity for cryptocurrencies
         granularity = map_granularity('crypto', granularity)
-
-        # Simulating crypto data fetch (replace with your API call)
-        # Example: Replace the following lines with the actual crypto API logic
+        
+        # Get the current time
         end_date = datetime.now()
         start_date = end_date - timedelta(days=lookback_days)
-        df = simulate_crypto_api(crypto_name, start_date, end_date, granularity)
+
+        # Convert to Unix timestamps
+        start_timestamp = int(start_date.timestamp())
+        end_timestamp = int(end_date.timestamp())
+
+        # Fetch market chart data
+        data = cg.get_coin_market_chart_range_by_id(
+            id=crypto_name,
+            vs_currency="usd",
+            from_timestamp=start_timestamp,
+            to_timestamp=end_timestamp
+        )
+
+        # Extract the data based on granularity
+        if granularity == "daily":
+            prices = data.get("prices", [])
+            volumes = data.get("total_volumes", [])
+        else:
+            raise ValueError(f"Unsupported granularity: {granularity}")
+
+        # Combine the data into a DataFrame
+        df = pd.DataFrame({
+            "time": [datetime.fromtimestamp(p[0] / 1000) for p in prices],
+            "price": [p[1] for p in prices],
+            "volume": [v[1] for v in volumes]
+        })
 
         if df.empty:
             print(f"Warning: No data returned for crypto {crypto_name}")
             return None
 
-        df.reset_index(inplace=True)
-        df.rename(columns={'timestamp': 'time', 'price': 'price', 'volume': 'volume'}, inplace=True)
-        return df[['time', 'price', 'volume']]
+        return df
 
     except Exception as e:
         print(f"Error fetching crypto data for {crypto_name}: {e}")
