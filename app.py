@@ -154,38 +154,44 @@ def main():
     if "ticker_stock_encoded" in X_test.columns:
         X_test["ticker_stock"] = encoders["stock"].inverse_transform(X_test["ticker_stock_encoded"])
 
-    # Debugging prints
-    print("\nDecoded crypto tickers in X_test:")
-    print(X_test["ticker_crypto"].unique() if "ticker_crypto" in X_test else "No crypto tickers found")
-
-    print("\nDecoded stock tickers in X_test:")
-    print(X_test["ticker_stock"].unique() if "ticker_stock" in X_test else "No stock tickers found")
-
     # Combine crypto and stock tickers into a unified "ticker" column
     if "ticker_crypto" in X_test.columns or "ticker_stock" in X_test.columns:
         X_test["ticker"] = X_test["ticker_crypto"].combine_first(X_test["ticker_stock"])
-    else:
-        print("Warning: No ticker information available in the test set.")
-
-    print("\nUnified ticker column created. Sample values:")
-    print(X_test["ticker"].head())
 
     # Add predictions to the dataset for interpretation
     X_test["prediction"] = ensemble_pred
     X_test["prediction_label"] = X_test["prediction"].map({0: "Down", 1: "Up"})
 
-    # Display prediction results grouped by ticker
-    print("\nPrediction Results by Ticker:")
-    prediction_summary = X_test.groupby(["ticker", "prediction_label"]).size().reset_index(name="Count")
-    print(prediction_summary)
+    # Group and display predictions separately for stocks and cryptos
+    print("\nPrediction Results by Cryptocurrency:")
+    if "ticker_crypto" in X_test.columns:
+        crypto_predictions = (
+            X_test[X_test["ticker_crypto"].notna()]
+            .groupby(["ticker_crypto", "prediction_label"])
+            .size()
+            .reset_index(name="Count")
+        )
+        print(crypto_predictions)
+    else:
+        print("No cryptocurrency predictions available.")
 
-    # Debugging prints before saving predictions
-    print("\nColumns in X_test before saving predictions:")
-    print(X_test.columns)
+    print("\nPrediction Results by Stock:")
+    if "ticker_stock" in X_test.columns:
+        stock_predictions = (
+            X_test[X_test["ticker_stock"].notna()]
+            .groupby(["ticker_stock", "prediction_label"])
+            .size()
+            .reset_index(name="Count")
+        )
+        print(stock_predictions)
+    else:
+        print("No stock predictions available.")
 
     # Save predictions to a file
     prediction_output_path = "data/processed/prediction_results.csv"
-    X_test[["ticker", "prediction_label", "ticker_crypto", "ticker_stock"]].to_csv(prediction_output_path, index=False)
+    X_test[["ticker", "prediction_label", "ticker_crypto", "ticker_stock"]].to_csv(
+        prediction_output_path, index=False
+    )
     print(f"\nPredictions saved to {prediction_output_path}")
 
 if __name__ == "__main__":
