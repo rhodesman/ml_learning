@@ -18,10 +18,7 @@ assets = config['stocks'] + config['cryptos']
 news_query = config['news_query']
 granularity = config['granularity']
 
-# Define paths
-RAW_DIR = "data/raw"
-PROCESSED_DIR = "data/processed"
-MERGED_FILE = os.path.join(PROCESSED_DIR, "merged_data.csv")
+
 
 def main():
     # Fetch and combine data

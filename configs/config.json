@@ -11,5 +11,5 @@
         "dogecoin"
     ],
     "news_query": "cryptocurrency",
-    "granularity": "1d"
+    "granularity": "daily"
 }
