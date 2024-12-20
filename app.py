@@ -143,13 +143,25 @@ def main():
     # Debugging: Check available columns
     print("\nAvailable columns in X_test before mapping tickers:", X_test.columns)
 
+    if "ticker_crypto" not in X_test.columns:
+        X_test["ticker_crypto"] = None
+    if "ticker_stock" not in X_test.columns:
+        X_test["ticker_stock"] = None
+
     # Decode crypto and stock tickers in the test set
     if "ticker_crypto_encoded" in X_test.columns:
         X_test["ticker_crypto"] = encoders["crypto"].inverse_transform(X_test["ticker_crypto_encoded"])
     if "ticker_stock_encoded" in X_test.columns:
         X_test["ticker_stock"] = encoders["stock"].inverse_transform(X_test["ticker_stock_encoded"])
 
-    # Combine crypto and stock tickers into a unified ticker column
+    # Debugging prints
+    print("\nDecoded crypto tickers in X_test:")
+    print(X_test["ticker_crypto"].unique() if "ticker_crypto" in X_test else "No crypto tickers found")
+
+    print("\nDecoded stock tickers in X_test:")
+    print(X_test["ticker_stock"].unique() if "ticker_stock" in X_test else "No stock tickers found")
+
+    # Combine crypto and stock tickers into a unified "ticker" column
     if "ticker_crypto" in X_test.columns or "ticker_stock" in X_test.columns:
         X_test["ticker"] = X_test["ticker_crypto"].combine_first(X_test["ticker_stock"])
     else:
@@ -167,9 +179,13 @@ def main():
     prediction_summary = X_test.groupby(["ticker", "prediction_label"]).size().reset_index(name="Count")
     print(prediction_summary)
 
+    # Debugging prints before saving predictions
+    print("\nColumns in X_test before saving predictions:")
+    print(X_test.columns)
+
     # Save predictions to a file
     prediction_output_path = "data/processed/prediction_results.csv"
-    X_test[["ticker", "prediction_label", "crypto_ticker", "stock_ticker"]].to_csv(prediction_output_path, index=False)
+    X_test[["ticker", "prediction_label", "ticker_crypto", "ticker_stock"]].to_csv(prediction_output_path, index=False)
     print(f"\nPredictions saved to {prediction_output_path}")
 
 if __name__ == "__main__":
