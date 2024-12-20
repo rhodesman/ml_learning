@@ -158,37 +158,44 @@ def main():
     if "ticker_crypto" in X_test.columns or "ticker_stock" in X_test.columns:
         X_test["ticker"] = X_test["ticker_crypto"].combine_first(X_test["ticker_stock"])
 
-    # Add predictions to the dataset for interpretation
+    # Ensure predictions align with X_test rows
+    print("Shape of ensemble predictions:", ensemble_pred.shape)
+    print("Shape of X_test:", X_test.shape)
+
+    # Add predictions and map labels
     X_test["prediction"] = ensemble_pred
     X_test["prediction_label"] = X_test["prediction"].map({0: "Down", 1: "Up"})
 
-    # Display detailed predictions for cryptocurrencies
+    # Check if prediction labels are assigned correctly
+    print("\nSample of X_test with predictions:")
+    print(X_test[["ticker_crypto", "ticker_stock", "prediction", "prediction_label"]].head())
+
+    # Separate predictions for cryptocurrencies and stocks
     if "ticker_crypto" in X_test.columns:
-        print("\nDetailed Predictions for Cryptocurrencies:")
         crypto_detailed = X_test[X_test["ticker_crypto"].notna()][
             ["ticker_crypto", "prediction_label", "price", "volume_crypto"]
         ]
-        print(crypto_detailed)
 
-    # Display detailed predictions for stocks
     if "ticker_stock" in X_test.columns:
-        print("\nDetailed Predictions for Stocks:")
         stock_detailed = X_test[X_test["ticker_stock"].notna()][
             ["ticker_stock", "prediction_label", "adj_close", "volume_stock"]
         ]
-        print(stock_detailed)
 
-    # Save predictions to separate files
+    # Save and display the outputs
     crypto_output_path = "data/processed/crypto_predictions.csv"
     stock_output_path = "data/processed/stock_predictions.csv"
 
     if not crypto_detailed.empty:
         crypto_detailed.to_csv(crypto_output_path, index=False)
         print(f"\nCryptocurrency predictions saved to {crypto_output_path}")
+        print("\nSample of cryptocurrency predictions:")
+        print(crypto_detailed.head())
 
     if not stock_detailed.empty:
         stock_detailed.to_csv(stock_output_path, index=False)
         print(f"\nStock predictions saved to {stock_output_path}")
+        print("\nSample of stock predictions:")
+        print(stock_detailed.head())
 
 if __name__ == "__main__":
     main()
