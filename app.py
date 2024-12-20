@@ -33,7 +33,14 @@ def main():
             data = fetch_crypto_data(asset, lookback_days, granularity)
         else:
             raise ValueError(f"Asset {asset} not recognized.")
-        data['ticker'] = asset
+
+        # Debugging: Check the fetched data
+        if data is None:
+            raise ValueError(f"Failed to fetch data for asset: {asset}")
+        print(f"Fetched data for {asset}:")
+        print(data.head())
+
+        data['ticker'] = asset  # Ensure this is only assigned to valid data
         data_frames.append(data)
 
     combined_data = pd.concat(data_frames, ignore_index=True)

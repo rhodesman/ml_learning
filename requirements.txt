@@ -11,3 +11,4 @@ coinbase-advanced-py
 python-dotenv
 pyjwt
 coinflow
+ccxt
