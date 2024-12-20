@@ -162,37 +162,33 @@ def main():
     X_test["prediction"] = ensemble_pred
     X_test["prediction_label"] = X_test["prediction"].map({0: "Down", 1: "Up"})
 
-    # Group and display predictions separately for stocks and cryptos
-    print("\nPrediction Results by Cryptocurrency:")
+    # Display detailed predictions for cryptocurrencies
     if "ticker_crypto" in X_test.columns:
-        crypto_predictions = (
-            X_test[X_test["ticker_crypto"].notna()]
-            .groupby(["ticker_crypto", "prediction_label"])
-            .size()
-            .reset_index(name="Count")
-        )
-        print(crypto_predictions)
-    else:
-        print("No cryptocurrency predictions available.")
+        print("\nDetailed Predictions for Cryptocurrencies:")
+        crypto_detailed = X_test[X_test["ticker_crypto"].notna()][
+            ["ticker_crypto", "prediction_label", "price", "volume_crypto"]
+        ]
+        print(crypto_detailed)
 
-    print("\nPrediction Results by Stock:")
+    # Display detailed predictions for stocks
     if "ticker_stock" in X_test.columns:
-        stock_predictions = (
-            X_test[X_test["ticker_stock"].notna()]
-            .groupby(["ticker_stock", "prediction_label"])
-            .size()
-            .reset_index(name="Count")
-        )
-        print(stock_predictions)
-    else:
-        print("No stock predictions available.")
+        print("\nDetailed Predictions for Stocks:")
+        stock_detailed = X_test[X_test["ticker_stock"].notna()][
+            ["ticker_stock", "prediction_label", "adj_close", "volume_stock"]
+        ]
+        print(stock_detailed)
 
-    # Save predictions to a file
-    prediction_output_path = "data/processed/prediction_results.csv"
-    X_test[["ticker", "prediction_label", "ticker_crypto", "ticker_stock"]].to_csv(
-        prediction_output_path, index=False
-    )
-    print(f"\nPredictions saved to {prediction_output_path}")
+    # Save predictions to separate files
+    crypto_output_path = "data/processed/crypto_predictions.csv"
+    stock_output_path = "data/processed/stock_predictions.csv"
+
+    if not crypto_detailed.empty:
+        crypto_detailed.to_csv(crypto_output_path, index=False)
+        print(f"\nCryptocurrency predictions saved to {crypto_output_path}")
+
+    if not stock_detailed.empty:
+        stock_detailed.to_csv(stock_output_path, index=False)
+        print(f"\nStock predictions saved to {stock_output_path}")
 
 if __name__ == "__main__":
     main()
