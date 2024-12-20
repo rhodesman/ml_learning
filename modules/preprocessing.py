@@ -25,3 +25,18 @@ def clean_market_data(df):
 def clean_news_data(news_list):
     # Perform text preprocessing like tokenization, lowercasing
     return [{"title": news["title"].lower(), "link": news["link"]} for news in news_list]
+
+def preprocess_unified_data(data):
+    """Preprocess the unified dataset."""
+    data["type"] = data["ticker"].apply(lambda t: "crypto" if t in config["cryptos"] else "stock")
+
+    # Apply crypto-specific preprocessing
+    crypto_data = data[data["type"] == "crypto"]
+    crypto_data = preprocess_crypto_data(crypto_data)
+
+    # Apply stock-specific preprocessing
+    stock_data = data[data["type"] == "stock"]
+    stock_data = preprocess_stock_data(stock_data)
+
+    # Recombine the data
+    return pd.concat([crypto_data, stock_data], ignore_index=True)

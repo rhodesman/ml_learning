@@ -287,6 +287,30 @@ def ensemble_predict(rf_model, xgb_model, X_test):
     
     return ensemble_pred
 
+def train_model_by_asset_type(data, model_type="RandomForest"):
+    """Train models for each asset type."""
+    results = {}
+
+    for asset in data["ticker"].unique():
+        asset_data = data[data["ticker"] == asset]
+        X_train, X_val, y_train, y_val = split_data(asset_data)
+
+        if model_type == "RandomForest":
+            model = train_random_forest(X_train, y_train, X_val, y_val)
+        elif model_type == "XGBoost":
+            model = train_xgboost(X_train, y_train, X_val, y_val)
+        else:
+            raise ValueError(f"Unsupported model type: {model_type}")
+
+        results[asset] = model
+
+    return results
+
+def train_model(X_train, y_train, X_val, y_val):
+    model = RandomForestClassifier(random_state=42)
+    model.fit(X_train, y_train)
+    return model
+
 if __name__ == "__main__":
     # Load processed data
     merged_data = pd.read_csv("data/processed/merged_data.csv")
