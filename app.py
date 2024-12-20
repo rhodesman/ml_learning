@@ -10,7 +10,7 @@ import pandas as pd
 import json
 
 # Load configuration
-with open('config.json', 'r') as f:
+with open('configs/config.json', 'r') as f:
     config = json.load(f)
 
 lookback_days = config['lookback_days']
