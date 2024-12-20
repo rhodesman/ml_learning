@@ -11,7 +11,7 @@ API_SECRET = os.getenv("COINBASE_API_SECRET")
 # Test API Key with an account endpoint
 url = "https://api.coinbase.com/api/v3/brokerage/accounts"
 headers = {
-    "Authorization": f"Bearer {API_KEY}",
+    "Authorization": "Bearer {API_KEY}",
     "Content-Type": "application/json"
 }
 
