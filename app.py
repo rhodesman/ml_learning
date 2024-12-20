@@ -109,11 +109,20 @@ def main():
     print(f"Shape of X_test: {X_test.shape}")
 
     # Train the Random Forest model
+    print("Training Random Forest model...")
     rf_model = train_random_forest(X_train, y_train, X_val, y_val)
+
+    # Inspect Random Forest feature importance (if needed)
+    rf_importance_file = "data/processed/random_forest_feature_importances.csv"
+    print("Random Forest feature importances saved to", rf_importance_file)
 
     # Train XGBoost
     print("Training XGBoost model...")
     xgb_model = train_xgboost(X_train, y_train, X_val, y_val)
+
+    # Inspect XGBoost feature importance (already integrated in train_xgboost)
+    xgb_importance_file = "data/processed/xgboost_feature_importances.csv"
+    print("XGBoost feature importances saved to", xgb_importance_file)
 
     # Step 4: Ensemble Evaluation
     print("Evaluating Ensemble...")
@@ -162,24 +171,37 @@ def main():
     print("Shape of ensemble predictions:", ensemble_pred.shape)
     print("Shape of X_test:", X_test.shape)
 
+    print("Raw predictions from ensemble model:")
+    print(ensemble_pred)
+    print("\nDistribution of predictions:")
+    print(pd.Series(ensemble_pred).value_counts())
+
     # Add predictions and map labels
     X_test["prediction"] = ensemble_pred
     X_test["prediction_label"] = X_test["prediction"].map({0: "Down", 1: "Up"})
 
     # Check if prediction labels are assigned correctly
     print("\nSample of X_test with predictions:")
-    print(X_test[["ticker_crypto", "ticker_stock", "prediction", "prediction_label"]].head())
+    # print(X_test[["ticker_crypto", "ticker_stock", "prediction", "prediction_label"]].head())
+    print(X_test.head())
 
     # Separate predictions for cryptocurrencies and stocks
     if "ticker_crypto" in X_test.columns:
         crypto_detailed = X_test[X_test["ticker_crypto"].notna()][
-            ["ticker_crypto", "prediction_label", "price", "volume_crypto"]
+            ["ticker_crypto", "prediction", "prediction_label", "price", "volume_crypto"]
         ]
 
     if "ticker_stock" in X_test.columns:
         stock_detailed = X_test[X_test["ticker_stock"].notna()][
-            ["ticker_stock", "prediction_label", "adj_close", "volume_stock"]
+            ["ticker_stock", "prediction", "prediction_label", "adj_close", "volume_stock"]
         ]
+
+    # Debug output
+    print("\nCryptocurrency detailed predictions:")
+    print(crypto_detailed.head())
+
+    print("\nStock detailed predictions:")
+    print(stock_detailed.head())
 
     # Save and display the outputs
     crypto_output_path = "data/processed/crypto_predictions.csv"

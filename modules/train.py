@@ -165,11 +165,23 @@ def train_random_forest(X_train, y_train, X_val, y_val):
     print(classification_report(y_val, y_val_pred, zero_division=0))
     print("Validation Accuracy:", accuracy_score(y_val, y_val_pred))
 
+    # Extract and save feature importances
+    feature_importances = model.feature_importances_
+    importance_df = pd.DataFrame({
+        'Feature': X_train.columns,
+        'Importance': feature_importances
+    }).sort_values(by='Importance', ascending=False)
+
+    importance_file = "data/processed/random_forest_feature_importances.csv"
+    importance_df.to_csv(importance_file, index=False)
+    print(f"Random Forest feature importances saved to {importance_file}")
+
     return model
 
 def train_xgboost(X_train, y_train, X_val, y_val):
     """
-    Train an XGBoost classifier and evaluate it on the validation set.
+    Train an XGBoost classifier, evaluate it on the validation set, 
+    and inspect feature importance.
 
     Args:
         X_train (pd.DataFrame): Training features.
@@ -193,8 +205,24 @@ def train_xgboost(X_train, y_train, X_val, y_val):
     # Evaluate the model on the validation set
     y_val_pred = model.predict(X_val)
     print("Validation Set Performance:")
-    print(classification_report(y_val, y_val_pred))
+    print(classification_report(y_val, y_val_pred, zero_division=0))
     print("Validation Accuracy:", accuracy_score(y_val, y_val_pred))
+
+    # Inspect feature importance
+    print("\nExtracting Feature Importances...")
+    feature_importances = model.feature_importances_
+    importance_df = pd.DataFrame({
+        "Feature": X_train.columns,
+        "Importance": feature_importances
+    }).sort_values(by="Importance", ascending=False)
+
+    print("\nFeature Importance Summary:")
+    print(importance_df.head())
+
+    # Save feature importances for further analysis
+    importance_file = "data/processed/xgboost_feature_importances.csv"
+    importance_df.to_csv(importance_file, index=False)
+    print(f"Feature importances saved to {importance_file}")
 
     return model
 
